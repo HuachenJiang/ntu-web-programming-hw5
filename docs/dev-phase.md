@@ -46,6 +46,8 @@ Acceptance criteria:
 
 ## Phase 2: Auth & User Identity
 
+Status: active
+
 Goal: implement registration and login with OAuth and app-specific identity.
 
 Work:
@@ -64,6 +66,8 @@ Acceptance criteria:
 - A first-time OAuth user must register a unique `userID`.
 - The same person using a different OAuth provider creates a separate `userID`.
 - A logged-in user with a valid session can return without signing in again.
+- `userID` values are immutable after registration and must be 3-20 lowercase letters, numbers, or underscores after trimming and lowercasing.
+- Phase 2 does not include the Phase 3 navigation, editable profile, posting, feed, or realtime behavior.
 
 ## Phase 3: Main Layout & Profile
 

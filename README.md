@@ -16,17 +16,17 @@ An English X/Twitter-style forum website for NTU Web Programming HW5. The app wi
 
 ## Current Status
 
-This repository is in **Phase 1: Next.js Foundation**. The project now has, or is being initialized with, the baseline Next.js application scaffold and engineering workflow.
+This repository is in **Phase 2: Auth & User Identity**. Phase 1 established the Next.js scaffold and engineering workflow; Phase 2 adds OAuth sign-in, MongoDB-backed sessions, and first-login `userID` onboarding.
 
-Phase 1 focuses on:
+Phase 2 focuses on:
 
-- TypeScript Next.js App Router app structure under `src/`
-- Tailwind CSS styling setup
-- ESLint, Prettier, TypeScript, build, and test commands
-- Environment validation helpers
-- A placeholder Home route that confirms the app boots
+- Google and GitHub OAuth through Auth.js/NextAuth
+- MongoDB persistence for users, provider accounts, and sessions
+- First-login onboarding for a unique immutable `userID`
+- Returning-session support while the session remains valid
+- A minimal authenticated home state
 
-Phase 2+ product features such as OAuth, MongoDB persistence, posting, profiles, and Pusher realtime updates are intentionally not implemented in Phase 1.
+Phase 3+ product features such as full navigation, editable profiles, posting, feeds, and Pusher realtime updates are intentionally not implemented in Phase 2.
 
 ## Feature Roadmap
 
@@ -67,7 +67,7 @@ NEXT_PUBLIC_PUSHER_KEY="YOUR_PUSHER_KEY"
 NEXT_PUBLIC_PUSHER_CLUSTER="YOUR_PUSHER_CLUSTER"
 ```
 
-See `docs/setup.md` for detailed setup steps.
+See `docs/setup.md` for detailed setup steps. See `docs/querying.md` for checking MongoDB Atlas data and local API responses.
 
 ## Development Commands
 

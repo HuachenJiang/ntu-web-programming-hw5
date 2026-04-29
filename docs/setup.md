@@ -1,6 +1,8 @@
 # Setup Guide
 
-This guide lists the user-operated setup needed for OAuth, MongoDB, Pusher, and Vercel. During local development, place these values in `.env.local`. During deployment, add the same values to the Vercel project environment variables.
+This guide lists the user-operated setup needed for OAuth, MongoDB, Pusher, and Vercel. During local development, place these values in `.env.local` or `.env`. During deployment, add the same values to the Vercel project environment variables.
+
+After setup, see `docs/querying.md` for checking MongoDB Atlas data and local API responses.
 
 ## Environment Fields
 

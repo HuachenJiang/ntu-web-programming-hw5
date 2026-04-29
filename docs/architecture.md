@@ -40,23 +40,26 @@ MongoDB is the planned single source of truth.
 
 Planned data groups:
 
-- Users: OAuth provider account identity, immutable `userID`, name, avatar, bio, banner, created time, updated time.
-- Sessions/accounts: handled through NextAuth-compatible persistence.
+- Users: Auth.js user records plus immutable app identity fields (`userID`, normalized `userIDLower`), name, avatar, bio, banner, created time, updated time.
+- Sessions/accounts: handled through Auth.js/NextAuth MongoDB adapter persistence. Accounts are provider-specific, and Phase 2 intentionally keeps Google and GitHub identities separate even when the provider email matches.
 - Posts: author, content, parsed links/mentions/hashtags, timestamps, counts, parent comment target, repost source, deleted state.
 - Drafts: owner, content, created time, updated time.
 - Follows: follower and following user references.
 - Likes: user and post/comment target references.
 - Reposts: user and source post references.
 
+Phase 2 creates a unique index on `users.userIDLower` for registered users. The application writes both `userID` and `userIDLower` during first-login onboarding and never updates either field afterward.
+
 Derived values such as counts may be denormalized for feed performance, but mutation APIs must keep them consistent with the source records.
 
 ## Authentication Flow
 
 1. User signs in with Google or GitHub through NextAuth.
-2. If the OAuth account has no registered app profile, route the user to onboarding.
-3. Onboarding requires a unique immutable `userID`.
-4. After onboarding, the user receives a session.
-5. If the session has not expired, later visits restore the logged-in state without repeating onboarding.
+2. Auth.js persists the provider account, user, and session in MongoDB.
+3. If the OAuth account has no registered `userID`, route the user to onboarding.
+4. Onboarding requires a unique immutable `userID`.
+5. After onboarding, the session exposes the app user id, nullable `userID`, and onboarding status.
+6. If the session has not expired, later visits restore the logged-in state without repeating onboarding.
 
 Different OAuth providers for the same person are treated as separate app users unless explicitly linked by a later requirement.
 
