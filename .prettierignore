@@ -8,3 +8,4 @@ playwright-report/
 test-results/
 yarn.lock
 spec.md
+requests/*.http

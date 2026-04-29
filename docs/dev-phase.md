@@ -79,7 +79,7 @@ Acceptance criteria:
 
 ## Phase 3: Main Layout & Profile
 
-Status: active
+Status: complete
 
 Goal: implement the core navigation and profile experience.
 
@@ -104,6 +104,25 @@ Acceptance criteria:
 - Other users' profiles show Follow/Following and do not expose Likes.
 - Profile edits persist display name, avatar URL, banner URL, and bio without allowing `userID` changes.
 - Follow/unfollow persists between the current user and other public profiles, and self-follow is rejected.
+
+## Phase 3 Stabilization: Login Theme & Local Performance Checks
+
+Goal: fix Phase 3 polish issues before starting Phase 4.
+
+Work:
+
+- Align the signed-out login/onboarding page with the completed app shell theme.
+- Remove the old Phase 2 bright-yellow login page treatment.
+- Add local `.http` requests for repeatable manual API checks.
+- Add a dependency-free local HTTP benchmark script for safe GET endpoints.
+
+Acceptance criteria:
+
+- The login page uses the X-clone dark theme, light text, muted borders, and blue accent colors used by the app home/profile shell.
+- OAuth login, returning `userID` login, onboarding, and signed-in states keep their existing behavior.
+- Local performance requests are documented and default to `http://localhost:3000`.
+- The benchmark script reports request count, success rate, average latency, min/max latency, and p95 latency.
+- The stabilization work is treated as Phase 3 bugfix work, not Phase 4 feature work.
 
 ## Phase 4: Posting & Drafts
 

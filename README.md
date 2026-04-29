@@ -16,17 +16,19 @@ An English X/Twitter-style forum website for NTU Web Programming HW5. The app wi
 
 ## Current Status
 
-This repository is in **Phase 2: Auth & User Identity**. Phase 1 established the Next.js scaffold and engineering workflow; Phase 2 adds OAuth sign-in, MongoDB-backed sessions, and first-login `userID` onboarding.
+This repository has completed **Phase 3: Main Layout & Profile** and is in a
+short Phase 3 stabilization pass before Phase 4 begins.
 
-Phase 2 focuses on:
+Completed through Phase 3:
 
 - Google and GitHub OAuth through Auth.js/NextAuth
-- MongoDB persistence for users, provider accounts, and sessions
+- MongoDB persistence for users, provider accounts, sessions, profiles, and follow state
 - First-login onboarding for a unique immutable `userID`
 - Returning-session support while the session remains valid
-- A minimal authenticated home state
+- X-clone-style left navigation, Home placeholder, profile pages, editable own profile, public profiles, and follow/unfollow behavior
 
-Phase 3+ product features such as full navigation, editable profiles, posting, feeds, and Pusher realtime updates are intentionally not implemented in Phase 2.
+Phase 4 product features such as post creation, drafts, and content parsing are
+next and are intentionally not part of the Phase 3 stabilization work.
 
 ## Feature Roadmap
 
@@ -68,6 +70,8 @@ NEXT_PUBLIC_PUSHER_CLUSTER="YOUR_PUSHER_CLUSTER"
 ```
 
 See `docs/setup.md` for detailed setup steps. See `docs/querying.md` for checking MongoDB Atlas data and local API responses.
+See `docs/performance-testing.md` for local `.http` requests and lightweight
+HTTP benchmark checks.
 
 ## Development Commands
 
@@ -80,6 +84,7 @@ yarn typecheck
 yarn test:run
 yarn format:check
 yarn build
+yarn perf:http
 ```
 
 `yarn dev` starts the local app at `http://localhost:3000`.

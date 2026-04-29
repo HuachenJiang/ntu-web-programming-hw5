@@ -31,10 +31,10 @@ export function SignInButtons() {
           key={provider.id}
           type="button"
           onClick={() => void handleProviderSignIn(provider.id)}
-          className="group flex min-h-12 items-center justify-between border border-[#15181d] bg-white px-4 text-left text-sm font-black text-[#15181d] shadow-[4px_4px_0_#15181d] transition hover:-translate-y-0.5 hover:shadow-[6px_6px_0_#15181d]"
+          className="group flex min-h-12 items-center justify-between rounded-full border border-[#2f3336] bg-black px-4 text-left text-sm font-black text-[#e7e9ea] transition hover:border-[#536471] hover:bg-[#181919] focus:outline-none focus:ring-2 focus:ring-[#1d9bf0]"
         >
           <span>{provider.label}</span>
-          <span className="grid h-8 min-w-8 place-items-center bg-[#15181d] px-2 text-xs text-white">
+          <span className="grid h-8 min-w-8 place-items-center rounded-full bg-[#eff3f4] px-2 text-xs text-[#0f1419]">
             {provider.mark}
           </span>
         </button>

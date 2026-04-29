@@ -39,15 +39,15 @@ export function OnboardingForm() {
 
   return (
     <form className="grid gap-4" onSubmit={handleSubmit}>
-      <label className="grid gap-2 text-sm font-bold text-[#15181d]">
+      <label className="grid gap-2 text-sm font-bold text-[#e7e9ea]">
         userID
-        <div className="flex min-h-12 items-center border border-[#15181d] bg-white shadow-[4px_4px_0_#15181d]">
-          <span className="px-3 text-[#667085]">@</span>
+        <div className="flex min-h-12 items-center rounded-2xl border border-[#2f3336] bg-black transition focus-within:border-[#1d9bf0]">
+          <span className="px-3 text-[#71767b]">@</span>
           <input
             value={userID}
             onChange={(event) => setUserID(event.target.value)}
             placeholder="ric2k1"
-            className="min-w-0 flex-1 border-0 bg-transparent px-1 py-3 text-base font-black text-[#15181d] outline-none"
+            className="min-w-0 flex-1 border-0 bg-transparent px-1 py-3 text-base font-black text-[#e7e9ea] outline-none placeholder:text-[#71767b]"
             autoComplete="username"
             maxLength={20}
             required
@@ -55,12 +55,12 @@ export function OnboardingForm() {
         </div>
       </label>
 
-      <p className="min-h-5 text-sm font-semibold text-[#5b6472]">{message}</p>
+      <p className="min-h-5 text-sm font-semibold text-[#71767b]">{message}</p>
 
       <button
         type="submit"
         disabled={isSubmitting}
-        className="min-h-12 border border-[#15181d] bg-[#e8ff5a] px-4 text-sm font-black text-[#15181d] shadow-[4px_4px_0_#15181d] transition hover:-translate-y-0.5 hover:shadow-[6px_6px_0_#15181d] disabled:cursor-not-allowed disabled:bg-[#d7dde8] disabled:text-[#667085]"
+        className="min-h-12 rounded-full bg-[#1d9bf0] px-4 text-sm font-black text-white transition hover:bg-[#1a8cd8] focus:outline-none focus:ring-2 focus:ring-[#1d9bf0] focus:ring-offset-2 focus:ring-offset-black disabled:cursor-not-allowed disabled:bg-[#536471] disabled:text-[#aab8c2]"
       >
         {isSubmitting ? "Saving..." : "Claim userID"}
       </button>

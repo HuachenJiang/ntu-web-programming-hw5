@@ -18,9 +18,9 @@ export function HomeContent({
   const isOnboarded = Boolean(session?.user?.onboarded);
 
   return (
-    <main className="min-h-screen px-5 py-6 text-[#15181d] sm:px-8">
-      <section className="mx-auto grid min-h-[calc(100vh-3rem)] w-full max-w-6xl grid-cols-1 border border-[#15181d] bg-[#fffdf2] shadow-[8px_8px_0_#15181d] lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="flex min-h-[340px] flex-col justify-between border-b border-[#15181d] bg-[#e8ff5a] p-6 lg:border-r lg:border-b-0 lg:p-8">
+    <main className="min-h-screen bg-black px-5 py-6 text-[#e7e9ea] sm:px-8">
+      <section className="mx-auto grid min-h-[calc(100vh-3rem)] w-full max-w-6xl grid-cols-1 overflow-hidden border border-[#2f3336] bg-black lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="flex min-h-[340px] flex-col justify-between border-b border-[#2f3336] bg-[#061018] p-6 lg:border-r lg:border-b-0 lg:p-8">
           <div className="flex items-center gap-3">
             <Image
               src="/orbit-logo.svg"
@@ -31,16 +31,16 @@ export function HomeContent({
               priority
             />
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.22em]">
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-[#71767b]">
                 HW5
               </p>
-              <p className="text-2xl font-black">Orbit</p>
+              <p className="text-2xl font-black text-[#9cffef]">Orbit</p>
             </div>
           </div>
 
           <div>
-            <p className="w-fit border border-[#15181d] bg-white px-3 py-1 text-xs font-black uppercase tracking-[0.18em] shadow-[3px_3px_0_#15181d]">
-              Phase 2
+            <p className="w-fit rounded-full border border-[#536471] bg-black px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-[#1d9bf0]">
+              Phase 3
             </p>
             <h1 className="mt-5 max-w-xl text-5xl font-black leading-none sm:text-6xl">
               Sign in. Claim your handle.
@@ -48,7 +48,7 @@ export function HomeContent({
           </div>
         </div>
 
-        <div className="flex items-center p-6 sm:p-10 lg:p-14">
+        <div className="flex items-center bg-black p-6 sm:p-10 lg:p-14">
           <div className="w-full max-w-xl">
             {!isSignedIn ? (
               <SignedOutPanel
@@ -85,14 +85,14 @@ function SignedOutPanel({
 
   return (
     <div>
-      <p className="text-sm font-black uppercase tracking-[0.18em] text-[#475467]">
+      <p className="text-sm font-black uppercase tracking-[0.18em] text-[#71767b]">
         Welcome
       </p>
       <h2 className="mt-3 text-3xl font-black leading-tight sm:text-4xl">
         Continue with your OAuth provider.
       </h2>
       {errorMessage ? (
-        <p className="mt-5 border border-[#15181d] bg-[#ffd8d8] px-4 py-3 text-sm font-black leading-6 text-[#15181d] shadow-[4px_4px_0_#15181d]">
+        <p className="mt-5 rounded-2xl border border-[#67070f] bg-[#20070a] px-4 py-3 text-sm font-bold leading-6 text-[#ff8b94]">
           {errorMessage}
         </p>
       ) : null}
@@ -100,11 +100,11 @@ function SignedOutPanel({
         <SignInButtons />
       </div>
       <div className="my-8 flex items-center gap-3">
-        <div className="h-px flex-1 bg-[#15181d]" />
-        <span className="text-xs font-black uppercase tracking-[0.18em] text-[#667085]">
+        <div className="h-px flex-1 bg-[#2f3336]" />
+        <span className="text-xs font-black uppercase tracking-[0.18em] text-[#71767b]">
           or
         </span>
-        <div className="h-px flex-1 bg-[#15181d]" />
+        <div className="h-px flex-1 bg-[#2f3336]" />
       </div>
       <UserIDSignInForm />
     </div>
@@ -114,13 +114,13 @@ function SignedOutPanel({
 function OnboardingPanel({ session }: { session: Session | null }) {
   return (
     <div>
-      <p className="text-sm font-black uppercase tracking-[0.18em] text-[#475467]">
+      <p className="text-sm font-black uppercase tracking-[0.18em] text-[#71767b]">
         First login
       </p>
       <h2 className="mt-3 text-3xl font-black leading-tight sm:text-4xl">
         Choose your immutable userID.
       </h2>
-      <p className="mt-4 text-base font-semibold leading-7 text-[#5b6472]">
+      <p className="mt-4 text-base font-semibold leading-7 text-[#71767b]">
         Signed in as{" "}
         {session?.user?.email ?? session?.user?.name ?? "OAuth user"}.
       </p>
@@ -134,13 +134,13 @@ function OnboardingPanel({ session }: { session: Session | null }) {
 function SignedInPanel({ session }: { session: Session | null }) {
   return (
     <div>
-      <p className="text-sm font-black uppercase tracking-[0.18em] text-[#475467]">
+      <p className="text-sm font-black uppercase tracking-[0.18em] text-[#71767b]">
         Session active
       </p>
       <h2 className="mt-3 text-3xl font-black leading-tight sm:text-4xl">
         You are signed in as @{session?.user.userID}.
       </h2>
-      <p className="mt-4 text-base font-semibold leading-7 text-[#5b6472]">
+      <p className="mt-4 text-base font-semibold leading-7 text-[#71767b]">
         {session?.user.name ?? session?.user.email ?? "Your account"} can return
         while this session remains valid.
       </p>

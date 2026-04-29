@@ -11,7 +11,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "perf:http": "node scripts/performance/http-bench.mjs"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.11.2",

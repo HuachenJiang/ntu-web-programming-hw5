@@ -1,0 +1,31 @@
+@baseUrl = http://localhost:3000
+@userID = ric2k1
+
+# Paste a signed-in browser cookie here when running authenticated requests.
+# Example: @cookie = next-auth.session-token=...
+@cookie =
+
+### Login page
+GET {{baseUrl}}/
+
+### Session API
+GET {{baseUrl}}/api/auth/session
+
+### Public profile API
+GET {{baseUrl}}/api/users/{{userID}}
+
+### Current user profile API, requires @cookie
+GET {{baseUrl}}/api/users/me
+Cookie: {{cookie}}
+
+### Profile update API, requires @cookie and mutates the current profile
+PATCH {{baseUrl}}/api/users/me/profile
+Content-Type: application/json
+Cookie: {{cookie}}
+
+{
+  "name": "Performance Test User",
+  "bio": "Local Phase 3 performance check.",
+  "image": "",
+  "bannerUrl": ""
+}

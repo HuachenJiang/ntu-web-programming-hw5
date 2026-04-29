@@ -23,7 +23,7 @@ describe("HomeContent", () => {
   });
 
   it("shows OAuth sign-in actions when signed out", () => {
-    render(<HomeContent session={null} />);
+    const { container } = render(<HomeContent session={null} />);
 
     expect(
       screen.getByRole("heading", {
@@ -40,6 +40,9 @@ describe("HomeContent", () => {
     expect(
       screen.getByRole("textbox", { name: /sign in with userid/i }),
     ).toBeInTheDocument();
+    expect(container.innerHTML).toContain("bg-black");
+    expect(container.innerHTML).toContain("#1d9bf0");
+    expect(container.innerHTML).not.toContain("#e8ff5a");
   });
 
   it("explains a userID OAuth account mismatch", () => {
@@ -117,6 +120,33 @@ describe("HomeContent", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Sign out" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows onboarding for a signed-in user without a userID", () => {
+    const session: Session = {
+      expires: "2099-01-01T00:00:00.000Z",
+      user: {
+        id: "user_1",
+        name: "Rico",
+        email: "rico@example.com",
+        image: null,
+        userID: null,
+        onboarded: false,
+      },
+    };
+
+    render(<HomeContent session={session} />);
+
+    expect(screen.getByText("First login")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: "Choose your immutable userID.",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Claim userID" }),
     ).toBeInTheDocument();
   });
 });

@@ -3,7 +3,10 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "HW5 X-clone",
-  description: "Phase 1 Next.js foundation for an English X-style forum.",
+  description: "English X-style forum for NTU Web Programming HW5.",
+  icons: {
+    icon: "/orbit-logo.svg",
+  },
 };
 
 export default function RootLayout({
