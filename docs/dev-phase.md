@@ -46,7 +46,7 @@ Acceptance criteria:
 
 ## Phase 2: Auth & User Identity
 
-Status: active
+Status: complete
 
 Goal: implement registration and login with OAuth and app-specific identity.
 
@@ -79,17 +79,21 @@ Acceptance criteria:
 
 ## Phase 3: Main Layout & Profile
 
+Status: active
+
 Goal: implement the core navigation and profile experience.
 
 Work:
 
 - Build the left navigation with custom logo/icon, Home, Profile, Post, and account area.
 - Add logout popup from the current-user account area.
-- Implement the own-profile page with editable name, avatar, banner, and bio.
+- Implement the own-profile page with editable name, avatar image URL, banner image URL, and bio.
 - Show post count and immutable `@userID`.
 - Implement read-only public profile view for other users.
 - Add Follow/Following state on other users' profiles.
 - Hide the Likes tab on other users' profiles.
+- Keep the Phase 3 Post button as a non-persistent composer modal shell; post creation, drafts, and feed data remain Phase 4+ work.
+- Use URL fields for avatar and banner editing. File uploads and CDN-backed media remain deferred advanced work.
 
 Acceptance criteria:
 
@@ -98,6 +102,8 @@ Acceptance criteria:
 - The Post button opens the post composer modal.
 - Own profile shows Edit Profile and Likes.
 - Other users' profiles show Follow/Following and do not expose Likes.
+- Profile edits persist display name, avatar URL, banner URL, and bio without allowing `userID` changes.
+- Follow/unfollow persists between the current user and other public profiles, and self-follow is rejected.
 
 ## Phase 4: Posting & Drafts
 

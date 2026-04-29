@@ -234,6 +234,16 @@ NEXT_PUBLIC_PUSHER_CLUSTER="PASTE_PUSHER_CLUSTER_HERE"
 
 10. Add all Pusher values to Vercel environment variables before production testing.
 
+## Phase 3 Profile Image Setup
+
+Phase 3 profile editing uses plain image URL fields for avatar and banner
+images. No storage bucket, CDN, upload token, or additional environment
+variable is required in this phase.
+
+Use publicly reachable `http://` or `https://` image URLs when testing profile
+edits. Local file uploads and hosted media storage are deferred until a later
+media phase.
+
 ## Vercel Deployment Setup
 
 Required values:

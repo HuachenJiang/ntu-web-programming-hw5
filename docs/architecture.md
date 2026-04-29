@@ -18,7 +18,7 @@ The planned architecture uses:
 The implementation should keep these areas separate:
 
 - `auth`: OAuth providers, session callbacks, onboarding status, and current-user helpers.
-- `users`: user profile, immutable `userID`, display name, avatar, bio, banner, and follow state.
+- `users`: user profile, immutable `userID`, display name, avatar URL, bio, banner URL, and follow state.
 - `posts`: posts, comments, reposts, drafts, likes, parsing, sorting, and recursive detail views.
 - `realtime`: Pusher server triggers and client subscriptions.
 - `ui`: navigation, feed, post cards, composer, modal, profile, and shared controls.
@@ -40,15 +40,15 @@ MongoDB is the planned single source of truth.
 
 Planned data groups:
 
-- Users: Auth.js user records plus immutable app identity fields (`userID`, normalized `userIDLower`), name, avatar, bio, banner, created time, updated time.
+- Users: Auth.js user records plus immutable app identity fields (`userID`, normalized `userIDLower`), editable display name, avatar image URL, bio, banner image URL, created time, updated time.
 - Sessions/accounts: handled through Auth.js/NextAuth MongoDB adapter persistence. Accounts are provider-specific, and Phase 2 intentionally keeps Google and GitHub identities separate even when the provider email matches.
 - Posts: author, content, parsed links/mentions/hashtags, timestamps, counts, parent comment target, repost source, deleted state.
 - Drafts: owner, content, created time, updated time.
-- Follows: follower and following user references.
+- Follows: follower and following user references stored in a dedicated `follows` collection with a unique `(followerId, followingId)` pair.
 - Likes: user and post/comment target references.
 - Reposts: user and source post references.
 
-Phase 2 creates a unique index on `users.userIDLower` for registered users. The application writes both `userID` and `userIDLower` during first-login onboarding and never updates either field afterward.
+Phase 2 creates a unique index on `users.userIDLower` for registered users. The application writes both `userID` and `userIDLower` during first-login onboarding and never updates either field afterward. Phase 3 adds the unique follow-pair index.
 
 Derived values such as counts may be denormalized for feed performance, but mutation APIs must keep them consistent with the source records.
 
@@ -94,6 +94,7 @@ The main layout should resemble X without copying its branding:
 Profile behavior:
 
 - Own profile supports editing name, avatar, banner, and bio.
+- Avatar and banner editing use HTTP/HTTPS image URL fields in the initial scope. File uploads and CDN-backed media are deferred until a later media phase.
 - `userID` cannot be changed after registration.
 - Other users' profiles are read-only and show Follow/Following instead of Edit Profile.
 - Other users' liked posts are private and must not be shown.

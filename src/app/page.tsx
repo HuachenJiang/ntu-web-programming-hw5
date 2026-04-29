@@ -1,4 +1,5 @@
 import { HomeContent } from "@/components/auth/home-content";
+import { redirect } from "next/navigation";
 import { auth } from "../../auth";
 
 type HomeSearchParams = {
@@ -21,6 +22,10 @@ export default async function Home({
 }) {
   const session = await auth();
   const params = await searchParams;
+
+  if (session?.user?.onboarded) {
+    redirect("/home");
+  }
 
   return (
     <HomeContent
