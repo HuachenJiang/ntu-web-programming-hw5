@@ -60,3 +60,21 @@ PERF_ITERATIONS="20" yarn perf:http
 
 For this Phase 3 stabilization pass, the benchmark is intended for local
 regression checks rather than production load testing.
+
+## Profile Render Checks
+
+Authenticated profile pages should not perform database maintenance work on the
+critical render path. Index creation is reserved for write paths that require a
+unique constraint, such as onboarding `userID` assignment and follow creation.
+Read-only profile fetches should rely on the existing MongoDB indexes and return
+the profile data directly.
+
+If `/profile` logs show large `application-code` time, compare:
+
+- `/api/auth/session` for session lookup latency.
+- `/api/users/me` with a local session cookie for current-user profile latency.
+- `/profile` with the same cookie for the full page render latency.
+
+Large delays isolated to authenticated profile reads usually point to MongoDB
+connection, Atlas cold-start, network allowlist, or query/index work rather than
+client-side rendering.

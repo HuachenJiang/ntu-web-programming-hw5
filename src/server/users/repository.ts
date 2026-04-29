@@ -150,8 +150,6 @@ function isSupportedOAuthProvider(
 
 export const mongoUserIDLoginRepository: UserIDLoginRepository = {
   async findOAuthAccountByUserID(userID) {
-    await ensureDatabaseIndexes();
-
     const database = getAppDatabase();
     const user = await database.collection("users").findOne(
       { userIDLower: userID },
@@ -198,8 +196,6 @@ export const mongoUserIDLoginRepository: UserIDLoginRepository = {
 export async function getCurrentUserProfile(
   currentUserId: string,
 ): Promise<UserProfileView | null> {
-  await ensureDatabaseIndexes();
-
   const user = await getAppDatabase()
     .collection<MongoUserDocument>("users")
     .findOne({
@@ -223,8 +219,6 @@ export async function getPublicUserProfileByUserID({
   userID: string;
   currentUserId?: string | null;
 }): Promise<UserProfileView | null> {
-  await ensureDatabaseIndexes();
-
   const user = await getAppDatabase()
     .collection<MongoUserDocument>("users")
     .findOne({
@@ -258,8 +252,6 @@ export async function updateCurrentUserProfile({
   currentUserId: string;
   profile: EditableProfile;
 }): Promise<UserProfileView | null> {
-  await ensureDatabaseIndexes();
-
   const updatedUser = await getAppDatabase()
     .collection<MongoUserDocument>("users")
     .findOneAndUpdate(
@@ -323,8 +315,6 @@ export async function unfollowUser({
   currentUserId: string;
   targetUserId: string;
 }): Promise<void> {
-  await ensureDatabaseIndexes();
-
   await getAppDatabase()
     .collection("follows")
     .deleteOne({
