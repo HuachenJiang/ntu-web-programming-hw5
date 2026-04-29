@@ -5,22 +5,28 @@ An English X/Twitter-style forum website for NTU Web Programming HW5. The app wi
 ## Planned Stack
 
 - Next.js full-stack application
+- TypeScript with the Next.js App Router
+- Tailwind CSS for styling
 - NextAuth for Google and GitHub OAuth
 - MongoDB for persistence
 - RESTful APIs for app data operations
 - Pusher for realtime likes/comments
+- Vitest and React Testing Library for focused tests
 - Vercel for deployment
 
 ## Current Status
 
-This repository is in **Phase 0: Project Docs & Rules**. Phase 0 is documentation-only and does not include application scaffolding yet.
+This repository is in **Phase 1: Next.js Foundation**. The project now has, or is being initialized with, the baseline Next.js application scaffold and engineering workflow.
 
-Required Phase 0 documents:
+Phase 1 focuses on:
 
-- `AGENTS.md`: project rules for future agents and contributors
-- `docs/architecture.md`: planned architecture
-- `docs/dev-phase.md`: development phases and acceptance criteria
-- `docs/setup.md`: user-operated service setup and environment variables
+- TypeScript Next.js App Router app structure under `src/`
+- Tailwind CSS styling setup
+- ESLint, Prettier, TypeScript, build, and test commands
+- Environment validation helpers
+- A placeholder Home route that confirms the app boots
+
+Phase 2+ product features such as OAuth, MongoDB persistence, posting, profiles, and Pusher realtime updates are intentionally not implemented in Phase 1.
 
 ## Feature Roadmap
 
@@ -62,6 +68,26 @@ NEXT_PUBLIC_PUSHER_CLUSTER="YOUR_PUSHER_CLUSTER"
 ```
 
 See `docs/setup.md` for detailed setup steps.
+
+## Development Commands
+
+After dependencies are installed with Yarn:
+
+```bash
+yarn dev
+yarn lint
+yarn typecheck
+yarn test:run
+yarn format:check
+yarn build
+```
+
+`yarn dev` starts the local app at `http://localhost:3000`.
+
+Dependency note: the Phase 1 scaffold started from the current `create-next-app`
+template. Tailwind/PostCSS and Vitest-related packages are pinned to stable
+compatible versions because Yarn classic had registry-resolution issues with
+newly published package metadata in this environment.
 
 ## Development Rule
 

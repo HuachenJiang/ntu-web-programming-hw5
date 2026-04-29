@@ -28,19 +28,21 @@ Goal: create the application scaffold and baseline engineering workflow.
 
 Work:
 
-- Initialize a Next.js app with TypeScript.
-- Choose and configure the styling approach.
-- Add linting, formatting, and testing commands.
-- Add the base application layout and folder structure.
-- Add environment validation and `.env.example`.
-- Add a placeholder Home route that confirms the app boots.
+- Initialize a Next.js App Router app with TypeScript, Yarn, and the `src/` directory.
+- Configure Tailwind CSS for the styling approach.
+- Add ESLint, Prettier, TypeScript checking, and Vitest + React Testing Library commands.
+- Add the base application layout and folder structure for UI, API routes, auth, database, domain logic, and realtime code.
+- Add environment validation while keeping `.env.example` aligned with `docs/setup.md`.
+- Add a placeholder Home route that confirms the app boots without implementing Phase 2+ features.
 
 Acceptance criteria:
 
 - The app runs locally.
-- Lint and test commands are available.
+- Lint, format check, typecheck, test, and build commands are available.
 - `.env.example` lists every required variable from `docs/setup.md`.
 - The project structure separates UI, API, auth, database, and domain logic.
+- The Home route renders a clear Phase 1 boot confirmation.
+- Focused tests cover the placeholder Home route and environment validation.
 
 ## Phase 2: Auth & User Identity
 

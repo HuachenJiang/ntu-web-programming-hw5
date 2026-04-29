@@ -2,7 +2,7 @@
 
 ## Overview
 
-The project will be a Next.js full-stack application that resembles the core X/Twitter forum experience. The UI is English-language and focused on the main center column and left navigation. The right sidebar can be omitted.
+The project is a Next.js full-stack application that resembles the core X/Twitter forum experience. The UI is English-language and focused on the main center column and left navigation. The right sidebar can be omitted.
 
 The planned architecture uses:
 
@@ -24,7 +24,15 @@ The implementation should keep these areas separate:
 - `ui`: navigation, feed, post cards, composer, modal, profile, and shared controls.
 - `db`: MongoDB client, collection access, indexes, and persistence helpers.
 
-Exact file paths will be chosen during Phase 1 according to the initialized Next.js structure.
+Phase 1 uses a `src/` based Next.js App Router structure:
+
+- `src/app`: route segments, layouts, global styles, and future route handlers under `src/app/api`.
+- `src/components`: reusable UI components shared across features.
+- `src/features`: domain feature modules such as auth, users, posts, and realtime UI/domain logic.
+- `src/lib`: shared utilities such as environment validation, parsing, and formatting helpers.
+- `src/server`: server-only integrations for database, auth, and realtime providers.
+
+Feature work should keep these folders as ownership boundaries instead of mixing API, persistence, UI, and domain logic in a single file.
 
 ## Data Ownership
 
