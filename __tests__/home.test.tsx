@@ -1,10 +1,12 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { Session } from "next-auth";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { HomeContent } from "@/components/auth/home-content";
 
+const signInMock = vi.hoisted(() => vi.fn());
+
 vi.mock("next-auth/react", () => ({
-  signIn: vi.fn(),
+  signIn: signInMock,
   signOut: vi.fn(),
 }));
 
@@ -15,6 +17,11 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("HomeContent", () => {
+  beforeEach(() => {
+    signInMock.mockReset();
+    vi.unstubAllGlobals();
+  });
+
   it("shows OAuth sign-in actions when signed out", () => {
     render(<HomeContent session={null} />);
 
@@ -30,6 +37,63 @@ describe("HomeContent", () => {
     expect(
       screen.getByRole("button", { name: /continue with github/i }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", { name: /sign in with userid/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("explains a userID OAuth account mismatch", () => {
+    render(
+      <HomeContent
+        loginError="user_id_mismatch"
+        loginUserID="ric2k1"
+        session={null}
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        "That OAuth account is not registered as @ric2k1. Please choose the account linked to that userID.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("starts the bound OAuth flow from a userID", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          status: "ok",
+          provider: "google",
+          userID: "ric2k1",
+        }),
+      }),
+    );
+    signInMock.mockResolvedValue(undefined);
+
+    render(<HomeContent session={null} />);
+
+    fireEvent.change(
+      screen.getByRole("textbox", { name: /sign in with userid/i }),
+      {
+        target: { value: "ric2k1" },
+      },
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: /continue from userid/i }),
+    );
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith("/api/login/user-id", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userID: "ric2k1" }),
+      });
+      expect(signInMock).toHaveBeenCalledWith("google");
+    });
   });
 
   it("shows the authenticated state for an onboarded session", () => {

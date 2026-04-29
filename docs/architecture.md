@@ -60,6 +60,12 @@ Derived values such as counts may be denormalized for feed performance, but muta
 4. Onboarding requires a unique immutable `userID`.
 5. After onboarding, the session exposes the app user id, nullable `userID`, and onboarding status.
 6. If the session has not expired, later visits restore the logged-in state without repeating onboarding.
+7. A signed-out returning user may enter their `userID`; the app looks up the
+   registered account, stores a short-lived signed login intent for the bound
+   OAuth provider account, and then redirects the browser to that provider.
+   During the OAuth callback, the selected provider account must match the
+   stored intent. The `userID` lookup is a convenience entry point, not an
+   authentication factor.
 
 Different OAuth providers for the same person are treated as separate app users unless explicitly linked by a later requirement.
 

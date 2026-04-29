@@ -262,9 +262,14 @@ Steps:
 2. Sign in with Google.
 3. Complete userID registration.
 4. Sign out.
-5. Sign in with GitHub using a separate test account if available.
-6. Create a post.
-7. Confirm the post appears in Home > All.
+5. Enter the registered userID and confirm the app redirects to the bound
+   OAuth provider before signing in again.
+6. Repeat the userID login and intentionally choose a different Google or
+   GitHub account at the provider; the app should reject that callback and show
+   a mismatch message.
+7. Sign in with GitHub using a separate test account if available.
+8. Create a post.
+9. Confirm the post appears in Home > All.
 ```
 
 ## Local Setup After Phase 1

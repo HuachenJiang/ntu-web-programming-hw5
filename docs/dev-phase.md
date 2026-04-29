@@ -57,6 +57,11 @@ Work:
 - Add first-login onboarding for `userID`.
 - Validate `userID` format and uniqueness.
 - Keep `userID` immutable after registration.
+- Add a returning-login shortcut that accepts `userID`, finds the registered
+  OAuth provider for that handle, and redirects to that provider for identity
+  verification. Store this as a short-lived login intent and reject the OAuth
+  callback if the selected provider account does not match the registered
+  `userID`.
 - Support returning login when the session has not expired.
 
 Acceptance criteria:
@@ -64,6 +69,9 @@ Acceptance criteria:
 - A user can sign in with Google.
 - A user can sign in with GitHub.
 - A first-time OAuth user must register a unique `userID`.
+- A returning user can enter their `userID` to continue through the bound
+  Google or GitHub OAuth provider; `userID` alone never authenticates a user,
+  and choosing a different account at the provider must be rejected.
 - The same person using a different OAuth provider creates a separate `userID`.
 - A logged-in user with a valid session can return without signing in again.
 - `userID` values are immutable after registration and must be 3-20 lowercase letters, numbers, or underscores after trimming and lowercasing.

@@ -16,13 +16,21 @@ const providers = [
 ];
 
 export function SignInButtons() {
+  async function handleProviderSignIn(providerId: string) {
+    await fetch("/api/login/user-id", {
+      method: "DELETE",
+    }).catch(() => undefined);
+
+    await signIn(providerId);
+  }
+
   return (
     <div className="grid gap-3">
       {providers.map((provider) => (
         <button
           key={provider.id}
           type="button"
-          onClick={() => void signIn(provider.id)}
+          onClick={() => void handleProviderSignIn(provider.id)}
           className="group flex min-h-12 items-center justify-between border border-[#15181d] bg-white px-4 text-left text-sm font-black text-[#15181d] shadow-[4px_4px_0_#15181d] transition hover:-translate-y-0.5 hover:shadow-[6px_6px_0_#15181d]"
         >
           <span>{provider.label}</span>
