@@ -81,6 +81,22 @@ Auth/session routes are handled by NextAuth. Application APIs should be RESTful 
 
 All mutation endpoints must check the authenticated session. Public read endpoints may return public profile and public post data only.
 
+Phase 4 implements the first concrete post and draft resources:
+
+- `POST /api/posts` creates an original post for the authenticated onboarded
+  user and may publish an owned draft by deleting it after successful creation.
+- `GET /api/drafts`, `POST /api/drafts`, `PATCH /api/drafts/[draftId]`, and
+  `DELETE /api/drafts/[draftId]` manage only the authenticated user's drafts.
+- Post content parsing and counted-length validation live in `src/features/posts`
+  so the modal composer, inline composer, API routes, and tests use one source
+  of truth.
+- MongoDB stores posts and drafts in separate collections. Posts include parsed
+  entities, counted length, timestamps, deleted state, and zeroed interaction
+  counts for later feed work. Drafts include owner, content, parsed entities,
+  counted length, and timestamps.
+- Phase 4 intentionally does not implement the persisted Home feed list,
+  comments, likes, reposts, recursive detail routes, or Pusher updates.
+
 ## UI Layout
 
 The main layout should resemble X without copying its branding:

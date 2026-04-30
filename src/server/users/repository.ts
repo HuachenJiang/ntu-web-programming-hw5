@@ -10,6 +10,7 @@ import type {
 } from "@/features/users/user-id-login";
 import { getAppDatabase } from "@/server/db/database";
 import { ensureDatabaseIndexes } from "@/server/db/indexes";
+import { countOriginalPostsByAuthor } from "@/server/posts/repository";
 
 function isDuplicateKeyError(error: unknown): error is MongoServerError {
   return (
@@ -54,10 +55,12 @@ function optionalString(value: unknown): string | null {
 }
 
 function mapProfile({
+  postCount,
   user,
   currentUserId,
   viewerFollows,
 }: {
+  postCount: number;
   user: MongoUserDocument;
   currentUserId?: string | null;
   viewerFollows: boolean;
@@ -75,7 +78,7 @@ function mapProfile({
     image: optionalString(user.image),
     bannerUrl: optionalString(user.bannerUrl),
     bio: optionalString(user.bio) ?? "",
-    postCount: 0,
+    postCount,
     isCurrentUser: currentUserId === id,
     viewerFollows,
   };
@@ -203,13 +206,16 @@ export async function getCurrentUserProfile(
       userIDLower: { $type: "string" },
     });
 
-  return user
-    ? mapProfile({
-        user,
-        currentUserId,
-        viewerFollows: false,
-      })
-    : null;
+  if (!user) {
+    return null;
+  }
+
+  return mapProfile({
+    user,
+    currentUserId,
+    viewerFollows: false,
+    postCount: await countOriginalPostsByAuthor(user._id.toHexString()),
+  });
 }
 
 export async function getPublicUserProfileByUserID({
@@ -242,6 +248,7 @@ export async function getPublicUserProfileByUserID({
     user,
     currentUserId,
     viewerFollows,
+    postCount: await countOriginalPostsByAuthor(id),
   });
 }
 
@@ -278,6 +285,7 @@ export async function updateCurrentUserProfile({
         user: updatedUser,
         currentUserId,
         viewerFollows: false,
+        postCount: await countOriginalPostsByAuthor(currentUserId),
       })
     : null;
 }

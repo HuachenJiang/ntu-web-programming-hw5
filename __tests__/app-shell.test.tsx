@@ -36,7 +36,7 @@ describe("AppShell", () => {
     ).toBeInTheDocument();
   });
 
-  it("opens the non-persistent post composer shell", () => {
+  it("opens the working post composer", () => {
     render(
       <AppShell
         currentUser={{ name: "Rico Huang", userID: "ric2k1", image: null }}
@@ -51,7 +51,7 @@ describe("AppShell", () => {
       screen.getByRole("dialog", { name: "New post" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Posting and drafts arrive in Phase 4."),
+      screen.getByRole("textbox", { name: "Post text" }),
     ).toBeInTheDocument();
   });
 });

@@ -42,7 +42,11 @@ describe("user repository index checks", () => {
         name: "Rico Huang",
       }),
     };
+    const posts = {
+      countDocuments: vi.fn().mockResolvedValue(2),
+    };
     const { ensureDatabaseIndexes, repository } = await loadRepository({
+      posts,
       users,
     });
 
@@ -57,6 +61,7 @@ describe("user repository index checks", () => {
     });
     expect(profile).toMatchObject({
       userID: "ric2k1",
+      postCount: 2,
       isCurrentUser: true,
     });
   });
@@ -75,8 +80,12 @@ describe("user repository index checks", () => {
     const follows = {
       findOne: vi.fn().mockResolvedValue(null),
     };
+    const posts = {
+      countDocuments: vi.fn().mockResolvedValue(3),
+    };
     const { ensureDatabaseIndexes, repository } = await loadRepository({
       follows,
+      posts,
       users,
     });
 
@@ -89,6 +98,7 @@ describe("user repository index checks", () => {
     expect(follows.findOne).toHaveBeenCalled();
     expect(profile).toMatchObject({
       userID: "lee",
+      postCount: 3,
       viewerFollows: false,
     });
   });

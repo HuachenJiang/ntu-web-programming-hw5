@@ -1,4 +1,11 @@
-export function HomeFeedPlaceholder() {
+import type { AppShellUser } from "@/components/app/app-shell";
+import { InlinePostComposer } from "@/components/posts/post-composer";
+
+export function HomeFeedPlaceholder({
+  currentUser,
+}: {
+  currentUser: AppShellUser;
+}) {
   return (
     <main className="min-h-screen">
       <header className="sticky top-0 z-10 border-b border-[#2f3336] bg-black/90 px-4 py-3 backdrop-blur">
@@ -19,22 +26,12 @@ export function HomeFeedPlaceholder() {
           Following
         </button>
       </div>
-      <section className="border-b border-[#2f3336] px-4 py-6">
-        <p className="text-xl text-[#71767b]">What is happening?</p>
-        <div className="mt-5 flex justify-end">
-          <button
-            type="button"
-            disabled
-            className="rounded-full bg-[#1d9bf0]/50 px-5 py-2 text-sm font-black text-white"
-          >
-            Post
-          </button>
-        </div>
-      </section>
+      <InlinePostComposer currentUser={currentUser} />
       <section className="px-8 py-16 text-center">
         <h2 className="text-2xl font-black">The feed opens in Phase 5.</h2>
         <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-[#71767b]">
-          Phase 3 focuses on navigation, profile editing, and follow state.
+          Phase 4 creates posts and drafts. The full All and Following feed
+          lists arrive in Phase 5.
         </p>
       </section>
     </main>

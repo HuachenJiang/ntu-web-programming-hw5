@@ -126,6 +126,8 @@ Acceptance criteria:
 
 ## Phase 4: Posting & Drafts
 
+Status: active
+
 Goal: implement post creation from the modal and inline composer.
 
 Work:
@@ -142,6 +144,8 @@ Work:
   - `#hashtags` and `@mentions` do not count toward the limit.
   - Long posts and media are not supported yet.
 - Render detected URLs, mentions, and hashtags as links.
+- Keep the full `All` / `Following` persisted feed list, interactions, and
+  recursive post detail routes in Phase 5.
 
 Acceptance criteria:
 

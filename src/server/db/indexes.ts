@@ -21,6 +21,18 @@ export function ensureDatabaseIndexes(): Promise<void> {
         unique: true,
       },
     ),
+    getAppDatabase().collection("posts").createIndex(
+      { authorId: 1, createdAt: -1 },
+      {
+        name: "posts_author_createdAt",
+      },
+    ),
+    getAppDatabase().collection("drafts").createIndex(
+      { ownerId: 1, updatedAt: -1 },
+      {
+        name: "drafts_owner_updatedAt",
+      },
+    ),
   ]).then(() => undefined);
 
   return indexesReady;

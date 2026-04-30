@@ -16,8 +16,8 @@ An English X/Twitter-style forum website for NTU Web Programming HW5. The app wi
 
 ## Current Status
 
-This repository has completed **Phase 3: Main Layout & Profile** and is in a
-short Phase 3 stabilization pass before Phase 4 begins.
+This repository has completed **Phase 3: Main Layout & Profile** and is now
+implementing **Phase 4: Posting & Drafts**.
 
 Completed through Phase 3:
 
@@ -27,8 +27,8 @@ Completed through Phase 3:
 - Returning-session support while the session remains valid
 - X-clone-style left navigation, Home placeholder, profile pages, editable own profile, public profiles, and follow/unfollow behavior
 
-Phase 4 product features such as post creation, drafts, and content parsing are
-next and are intentionally not part of the Phase 3 stabilization work.
+Phase 4 adds persisted post creation, modal and inline composers, drafts, and
+shared post-content parsing. Full feed lists and interactions remain Phase 5.
 
 ## Feature Roadmap
 

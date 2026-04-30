@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
+import { PostComposerModal } from "@/components/posts/post-composer";
 
 export type AppShellUser = {
   name: string;
@@ -102,7 +103,10 @@ export function AppShell({
       </div>
 
       {composerOpen ? (
-        <PostComposerModal onClose={() => setComposerOpen(false)} />
+        <PostComposerModal
+          currentUser={currentUser}
+          onClose={() => setComposerOpen(false)}
+        />
       ) : null}
     </div>
   );
@@ -189,53 +193,5 @@ function Avatar({ image, name }: { image: string | null; name: string }) {
     >
       {image ? null : initial}
     </span>
-  );
-}
-
-function PostComposerModal({ onClose }: { onClose: () => void }) {
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-[#5b7083]/40 px-4 py-10"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="post-composer-title"
-    >
-      <div className="w-full max-w-xl rounded-2xl border border-[#2f3336] bg-black shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
-        <div className="flex items-center justify-between border-b border-[#2f3336] px-4 py-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-xl font-bold transition hover:bg-[#181919]"
-            aria-label="Close post composer"
-          >
-            x
-          </button>
-          <p id="post-composer-title" className="text-base font-black">
-            New post
-          </p>
-          <span className="w-9" aria-hidden="true" />
-        </div>
-        <div className="p-5">
-          <textarea
-            aria-label="Post text"
-            disabled
-            placeholder="What is happening?"
-            className="min-h-32 w-full resize-none bg-transparent text-xl text-[#e7e9ea] outline-none placeholder:text-[#71767b]"
-          />
-          <div className="mt-5 flex items-center justify-between border-t border-[#2f3336] pt-4">
-            <p className="text-sm font-semibold text-[#71767b]">
-              Posting and drafts arrive in Phase 4.
-            </p>
-            <button
-              type="button"
-              disabled
-              className="rounded-full bg-[#1d9bf0]/50 px-5 py-2 text-sm font-black text-white"
-            >
-              Post
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }

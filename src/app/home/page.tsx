@@ -19,7 +19,7 @@ export default async function HomePage() {
 
   return (
     <AppShell currentUser={currentUser}>
-      <HomeFeedPlaceholder />
+      <HomeFeedPlaceholder currentUser={currentUser} />
     </AppShell>
   );
 }
