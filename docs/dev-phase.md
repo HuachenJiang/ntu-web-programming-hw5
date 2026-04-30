@@ -150,6 +150,8 @@ Work:
 Acceptance criteria:
 
 - A modal post can be created.
+- A modal post created while the user is on Home appears in the center column's
+  lightweight Phase 4 preview after the modal closes.
 - Inline composer posts can be created without drafts or close controls.
 - Closing a non-empty modal asks whether to save or discard.
 - Saved drafts can be listed and reused.

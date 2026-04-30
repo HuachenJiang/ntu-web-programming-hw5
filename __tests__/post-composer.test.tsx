@@ -1,6 +1,13 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AppShell } from "@/components/app/app-shell";
+import { HomeFeedPlaceholder } from "@/components/app/home-feed-placeholder";
 import { InlinePostComposer } from "@/components/posts/post-composer";
 import { RichPostText } from "@/components/posts/rich-post-text";
 import { parsePostContent } from "@/features/posts/content";
@@ -116,6 +123,64 @@ describe("Phase 4 post composer UI", () => {
       "draft body",
     );
     expect(screen.getByText("Editing draft")).toBeInTheDocument();
+  });
+
+  it("shows a left-nav modal post in the Home center column preview", async () => {
+    const parsed = parsePostContent("from modal @rico");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          post: {
+            id: "post_1",
+            content: parsed.content,
+            countedLength: parsed.countedLength,
+            entities: parsed.entities,
+            createdAt: "2026-04-30T00:00:00.000Z",
+          },
+        }),
+      }),
+    );
+
+    render(
+      <AppShell currentUser={currentUser}>
+        <HomeFeedPlaceholder currentUser={currentUser} />
+      </AppShell>,
+    );
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Post" })[0]);
+    const dialog = screen.getByRole("dialog", { name: "New post" });
+    fireEvent.change(
+      within(dialog).getByRole("textbox", { name: "Post text" }),
+      {
+        target: { value: "from modal @rico" },
+      },
+    );
+    fireEvent.click(within(dialog).getByRole("button", { name: "Post" }));
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith("/api/posts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: "from modal @rico",
+          draftId: null,
+        }),
+      });
+    });
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("dialog", { name: "New post" }),
+      ).not.toBeInTheDocument();
+    });
+    expect(await screen.findByText("Just posted")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "@rico" })).toHaveAttribute(
+      "href",
+      "/users/rico",
+    );
   });
 
   it("submits and clears the inline composer", async () => {

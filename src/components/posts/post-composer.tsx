@@ -22,7 +22,7 @@ type DraftView = {
   updatedAt: string;
 };
 
-type PostView = {
+export type PostView = {
   id: string;
   content: string;
   countedLength: number;
@@ -84,11 +84,25 @@ function networkErrorMessage(action: string) {
   return `${action} failed because the connection was interrupted. Please try again.`;
 }
 
+function optimisticPostFromContent(content: string): PostView {
+  const parsed = parsePostContent(content);
+
+  return {
+    id: `optimistic-${Date.now()}`,
+    content: parsed.content,
+    countedLength: parsed.countedLength,
+    entities: parsed.entities,
+    createdAt: new Date().toISOString(),
+  };
+}
+
 export function PostComposerModal({
   currentUser,
+  onCreated,
   onClose,
 }: {
   currentUser: ComposerUser;
+  onCreated?: (post: PostView) => void;
   onClose: () => void;
 }) {
   const { content, remaining, setContent, updateContent } = useCountedContent();
@@ -198,6 +212,12 @@ export function PostComposerModal({
         return;
       }
 
+      const result = (await response.json().catch(() => ({}))) as {
+        post?: PostView;
+      };
+      const createdPost = result.post ?? optimisticPostFromContent(content);
+
+      onCreated?.(createdPost);
       onClose();
     } catch {
       setMessage(networkErrorMessage("Creating the post"));
@@ -371,8 +391,10 @@ export function PostComposerModal({
 
 export function InlinePostComposer({
   currentUser,
+  onCreated,
 }: {
   currentUser: ComposerUser;
+  onCreated?: (post: PostView) => void;
 }) {
   const { content, parsed, remaining, updateContent, setContent } =
     useCountedContent();
@@ -405,6 +427,9 @@ export function InlinePostComposer({
 
       const result = (await response.json()) as { post?: PostView };
       setCreatedPost(result.post ?? null);
+      if (result.post) {
+        onCreated?.(result.post);
+      }
       setContent("");
     } catch {
       setMessage(networkErrorMessage("Creating the post"));
@@ -446,7 +471,7 @@ export function InlinePostComposer({
         </div>
       </div>
 
-      {createdPost ? (
+      {!onCreated && createdPost ? (
         <article className="mt-4 rounded-xl border border-[#2f3336] px-4 py-3">
           <p className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-[#71767b]">
             Just posted
