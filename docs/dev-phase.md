@@ -126,7 +126,7 @@ Acceptance criteria:
 
 ## Phase 4: Posting & Drafts
 
-Status: active
+Status: complete
 
 Goal: implement post creation from the modal and inline composer.
 
@@ -160,6 +160,8 @@ Acceptance criteria:
 
 ## Phase 5: Feed, Interactions & Recursive Comments
 
+Status: active
+
 Goal: implement the main forum reading and interaction behavior.
 
 Work:
@@ -173,6 +175,12 @@ Work:
 - Prevent deleting repost entries as if they were original posts.
 - Implement recursive post/comment detail routes with a back arrow and title `Post`.
 - Add profile tabs for public posts/reposts and private own likes.
+- Add REST APIs for feed reads, post detail reads, comments, likes, reposts,
+  deletes, profile posts, and own liked posts.
+- Store likes and reposts in dedicated collections while keeping denormalized
+  interaction counts consistent on post documents.
+- Keep media uploads, right sidebar content, and realtime Pusher subscriptions
+  deferred to later phases.
 
 Acceptance criteria:
 
@@ -183,6 +191,11 @@ Acceptance criteria:
 - Interactions update counts after mutation.
 - Only the author can delete an original post.
 - At least two users can interact through follow, like, repost, and comment flows.
+- Deleted posts/comments are hidden from feeds, detail routes, profile tabs, and
+  liked-post lists.
+- Repost feed entries cannot be deleted as original posts; users remove their
+  own repost through the repost interaction.
+- Another user's Likes tab is never exposed.
 
 ## Phase 6: Realtime Pusher
 

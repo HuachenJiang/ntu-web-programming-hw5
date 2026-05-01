@@ -52,6 +52,23 @@ Phase 2 creates a unique index on `users.userIDLower` for registered users. The 
 
 Derived values such as counts may be denormalized for feed performance, but mutation APIs must keep them consistent with the source records.
 
+Phase 5 makes these concrete ownership choices:
+
+- Top-level posts and comments both live in `posts`. Comments point to their
+  direct parent with `parentId`, which lets any post or comment become the root
+  of a recursive detail route.
+- `likes` and `reposts` are dedicated source-of-truth collections with unique
+  `(userId, targetPostId)` pairs. Post documents keep denormalized
+  `commentCount`, `repostCount`, and `likeCount` values for fast feed cards.
+- Feeds return non-deleted top-level posts and repost events. `All` includes
+  every public post/repost; `Following` filters both original authors and
+  reposters to users followed by the viewer.
+- Profile post tabs show a user's public top-level posts and reposts. Own
+  profile likes are private to the signed-in viewer and are never exposed on
+  other public profiles.
+- Deletion is a soft delete for owned original post/comment documents. Repost
+  entries are removed only through unrepost, not through post deletion.
+
 ## Authentication Flow
 
 1. User signs in with Google or GitHub through NextAuth.
@@ -96,6 +113,19 @@ Phase 4 implements the first concrete post and draft resources:
   counted length, and timestamps.
 - Phase 4 intentionally does not implement the persisted Home feed list,
   comments, likes, reposts, recursive detail routes, or Pusher updates.
+
+Phase 5 adds these concrete REST resources:
+
+- `GET /api/feed?tab=all|following` reads the Home feed.
+- `GET /api/posts/[postId]` reads one post/comment and its direct replies.
+- `DELETE /api/posts/[postId]` soft-deletes an owned original post/comment.
+- `POST /api/posts/[postId]/comments` creates a direct reply.
+- `POST /api/posts/[postId]/likes` and `DELETE /api/posts/[postId]/likes`
+  like and unlike a post/comment.
+- `POST /api/posts/[postId]/reposts` and `DELETE /api/posts/[postId]/reposts`
+  repost and unrepost a post/comment.
+- `GET /api/users/[userID]/posts` reads a public profile's posts and reposts.
+- `GET /api/users/me/likes` reads only the current user's liked posts.
 
 ## UI Layout
 

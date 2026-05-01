@@ -27,6 +27,32 @@ export function ensureDatabaseIndexes(): Promise<void> {
         name: "posts_author_createdAt",
       },
     ),
+    getAppDatabase().collection("posts").createIndex(
+      { parentId: 1, createdAt: -1 },
+      {
+        name: "posts_parent_createdAt",
+      },
+    ),
+    getAppDatabase().collection("posts").createIndex(
+      { deleted: 1, createdAt: -1 },
+      {
+        name: "posts_deleted_createdAt",
+      },
+    ),
+    getAppDatabase().collection("likes").createIndex(
+      { userId: 1, targetPostId: 1 },
+      {
+        name: "likes_user_target_unique",
+        unique: true,
+      },
+    ),
+    getAppDatabase().collection("reposts").createIndex(
+      { userId: 1, targetPostId: 1 },
+      {
+        name: "reposts_user_target_unique",
+        unique: true,
+      },
+    ),
     getAppDatabase().collection("drafts").createIndex(
       { ownerId: 1, updatedAt: -1 },
       {

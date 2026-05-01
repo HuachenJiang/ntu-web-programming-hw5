@@ -16,19 +16,22 @@ An English X/Twitter-style forum website for NTU Web Programming HW5. The app wi
 
 ## Current Status
 
-This repository has completed **Phase 3: Main Layout & Profile** and is now
-implementing **Phase 4: Posting & Drafts**.
+This repository has completed **Phase 4: Posting & Drafts** and is now
+implementing **Phase 5: Feed, Interactions & Recursive Comments**.
 
-Completed through Phase 3:
+Completed through Phase 4:
 
 - Google and GitHub OAuth through Auth.js/NextAuth
 - MongoDB persistence for users, provider accounts, sessions, profiles, and follow state
 - First-login onboarding for a unique immutable `userID`
 - Returning-session support while the session remains valid
 - X-clone-style left navigation, Home placeholder, profile pages, editable own profile, public profiles, and follow/unfollow behavior
+- Persisted post creation, modal and inline composers, drafts, and shared
+  post-content parsing
 
-Phase 4 adds persisted post creation, modal and inline composers, drafts, and
-shared post-content parsing. Full feed lists and interactions remain Phase 5.
+Phase 5 adds persisted `All` and `Following` feeds, post/comment detail routes,
+comments, likes, reposts, deletion rules, and profile post/like tabs. Realtime
+Pusher updates remain Phase 6.
 
 ## Feature Roadmap
 

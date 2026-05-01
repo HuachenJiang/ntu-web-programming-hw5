@@ -8,6 +8,14 @@ const createDraftMock = vi.hoisted(() => vi.fn());
 const listDraftsMock = vi.hoisted(() => vi.fn());
 const updateDraftMock = vi.hoisted(() => vi.fn());
 const deleteDraftMock = vi.hoisted(() => vi.fn());
+const listFeedMock = vi.hoisted(() => vi.fn());
+const getPostThreadMock = vi.hoisted(() => vi.fn());
+const deletePostMock = vi.hoisted(() => vi.fn());
+const createCommentMock = vi.hoisted(() => vi.fn());
+const likePostMock = vi.hoisted(() => vi.fn());
+const unlikePostMock = vi.hoisted(() => vi.fn());
+const repostPostMock = vi.hoisted(() => vi.fn());
+const unrepostPostMock = vi.hoisted(() => vi.fn());
 
 vi.mock("../auth", () => ({
   auth: authMock,
@@ -21,9 +29,31 @@ vi.mock("@/server/posts/repository", () => ({
   listDrafts: listDraftsMock,
   updateDraft: updateDraftMock,
   deleteDraft: deleteDraftMock,
+  listFeed: listFeedMock,
+  getPostThread: getPostThreadMock,
+  deletePost: deletePostMock,
+  createComment: createCommentMock,
+  likePost: likePostMock,
+  unlikePost: unlikePostMock,
+  repostPost: repostPostMock,
+  unrepostPost: unrepostPostMock,
 }));
 
 import { POST as createPostRoute } from "@/app/api/posts/route";
+import { GET as getFeedRoute } from "@/app/api/feed/route";
+import {
+  DELETE as deletePostRoute,
+  GET as getPostRoute,
+} from "@/app/api/posts/[postId]/route";
+import { POST as createCommentRoute } from "@/app/api/posts/[postId]/comments/route";
+import {
+  DELETE as unlikePostRoute,
+  POST as likePostRoute,
+} from "@/app/api/posts/[postId]/likes/route";
+import {
+  DELETE as unrepostPostRoute,
+  POST as repostPostRoute,
+} from "@/app/api/posts/[postId]/reposts/route";
 import {
   GET as listDraftsRoute,
   POST as createDraftRoute,
@@ -57,6 +87,14 @@ describe("post and draft APIs", () => {
     listDraftsMock.mockReset();
     updateDraftMock.mockReset();
     deleteDraftMock.mockReset();
+    listFeedMock.mockReset();
+    getPostThreadMock.mockReset();
+    deletePostMock.mockReset();
+    createCommentMock.mockReset();
+    likePostMock.mockReset();
+    unlikePostMock.mockReset();
+    repostPostMock.mockReset();
+    unrepostPostMock.mockReset();
   });
 
   it("rejects unauthenticated post creation", async () => {
@@ -167,6 +205,114 @@ describe("post and draft APIs", () => {
     expect(deleteDraftMock).toHaveBeenCalledWith({
       ownerId: session.user.id,
       draftId: "507f1f77bcf86cd799439012",
+    });
+  });
+
+  it("reads the All and Following feeds for the current user", async () => {
+    authMock.mockResolvedValue(session);
+    listFeedMock.mockResolvedValue([{ id: "feed_1" }]);
+
+    const response = await getFeedRoute(
+      new Request("http://localhost/api/feed?tab=following"),
+    );
+
+    expect(response.status).toBe(200);
+    expect(listFeedMock).toHaveBeenCalledWith({
+      tab: "following",
+      viewerId: session.user.id,
+    });
+    expect(await response.json()).toMatchObject({
+      status: "ok",
+      tab: "following",
+      items: [{ id: "feed_1" }],
+    });
+  });
+
+  it("reads post detail and rejects forbidden deletes", async () => {
+    authMock.mockResolvedValue(session);
+    getPostThreadMock.mockResolvedValue({
+      post: { id: "post_1" },
+      replies: [],
+    });
+    deletePostMock.mockResolvedValue("forbidden");
+
+    const context = {
+      params: Promise.resolve({ postId: "507f1f77bcf86cd799439013" }),
+    };
+
+    expect(
+      (await getPostRoute(new Request("http://localhost"), context)).status,
+    ).toBe(200);
+    expect(getPostThreadMock).toHaveBeenCalledWith({
+      postId: "507f1f77bcf86cd799439013",
+      viewerId: session.user.id,
+    });
+
+    const deleteResponse = await deletePostRoute(
+      new Request("http://localhost", { method: "DELETE" }),
+      context,
+    );
+
+    expect(deleteResponse.status).toBe(403);
+    expect(deletePostMock).toHaveBeenCalledWith({
+      postId: "507f1f77bcf86cd799439013",
+      userId: session.user.id,
+    });
+  });
+
+  it("creates comments with shared post validation", async () => {
+    authMock.mockResolvedValue(session);
+    createCommentMock.mockResolvedValue({ id: "comment_1" });
+    const context = {
+      params: Promise.resolve({ postId: "507f1f77bcf86cd799439013" }),
+    };
+
+    const response = await createCommentRoute(
+      jsonRequest({ content: "reply @rico" }),
+      context,
+    );
+
+    expect(response.status).toBe(201);
+    expect(createCommentMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        authorId: session.user.id,
+        parentPostId: "507f1f77bcf86cd799439013",
+        parsed: expect.objectContaining({ content: "reply @rico" }),
+      }),
+    );
+  });
+
+  it("likes, unlikes, reposts, and unreposts posts", async () => {
+    authMock.mockResolvedValue(session);
+    likePostMock.mockResolvedValue({ id: "post_1", likeCount: 1 });
+    unlikePostMock.mockResolvedValue({ id: "post_1", likeCount: 0 });
+    repostPostMock.mockResolvedValue({ id: "post_1", repostCount: 1 });
+    unrepostPostMock.mockResolvedValue({ id: "post_1", repostCount: 0 });
+    const context = {
+      params: Promise.resolve({ postId: "507f1f77bcf86cd799439013" }),
+    };
+
+    expect(
+      (await likePostRoute(new Request("http://localhost"), context)).status,
+    ).toBe(200);
+    expect(
+      (await unlikePostRoute(new Request("http://localhost"), context)).status,
+    ).toBe(200);
+    expect(
+      (await repostPostRoute(new Request("http://localhost"), context)).status,
+    ).toBe(200);
+    expect(
+      (await unrepostPostRoute(new Request("http://localhost"), context))
+        .status,
+    ).toBe(200);
+
+    expect(likePostMock).toHaveBeenCalledWith({
+      postId: "507f1f77bcf86cd799439013",
+      userId: session.user.id,
+    });
+    expect(unrepostPostMock).toHaveBeenCalledWith({
+      postId: "507f1f77bcf86cd799439013",
+      userId: session.user.id,
     });
   });
 });

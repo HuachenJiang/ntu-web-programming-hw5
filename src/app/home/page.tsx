@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app/app-shell";
-import { HomeFeedPlaceholder } from "@/components/app/home-feed-placeholder";
+import { HomeFeed } from "@/components/app/home-feed";
 import { getCurrentUserProfile } from "@/server/users/repository";
 import { auth } from "../../../auth";
 
@@ -19,7 +19,7 @@ export default async function HomePage() {
 
   return (
     <AppShell currentUser={currentUser}>
-      <HomeFeedPlaceholder currentUser={currentUser} />
+      <HomeFeed currentUser={currentUser} />
     </AppShell>
   );
 }

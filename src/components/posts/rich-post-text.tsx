@@ -20,6 +20,7 @@ export function RichPostText({
       <a
         key={`${entity.type}-${entity.start}-${entity.end}`}
         href={entity.href}
+        onClick={(event) => event.stopPropagation()}
         target={entity.type === "url" ? "_blank" : undefined}
         rel={entity.type === "url" ? "noreferrer" : undefined}
         className="font-semibold text-[#1d9bf0] hover:underline"

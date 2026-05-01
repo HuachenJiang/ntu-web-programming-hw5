@@ -1,8 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { FeedList } from "@/components/posts/feed-list";
 import type { UserProfileView } from "@/features/users/profile";
+import type { FeedItemView, PostDetailView } from "@/server/posts/repository";
 
 type ProfileTab = "posts" | "likes";
 
@@ -14,6 +16,70 @@ export function ProfilePage({ profile }: { profile: UserProfileView }) {
   const [isFollowing, setIsFollowing] = useState(profile.viewerFollows);
   const [followError, setFollowError] = useState<string | null>(null);
   const [followBusy, setFollowBusy] = useState(false);
+  const [items, setItems] = useState<FeedItemView[]>([]);
+  const [itemsLoading, setItemsLoading] = useState(true);
+  const [itemsMessage, setItemsMessage] = useState<string | null>(null);
+
+  async function readProfileItems(
+    tab: ProfileTab,
+    profileView: UserProfileView,
+  ) {
+    const endpoint =
+      tab === "likes" && profileView.isCurrentUser
+        ? "/api/users/me/likes"
+        : `/api/users/${profileView.userID}/posts`;
+    const response = await fetch(endpoint);
+    const result = (await response.json().catch(() => ({}))) as {
+      items?: FeedItemView[];
+      message?: string;
+    };
+
+    if (!response.ok) {
+      throw new Error(result.message ?? "Could not load profile posts.");
+    }
+
+    return result.items ?? [];
+  }
+
+  function updatePostInItems(updatedPost: PostDetailView) {
+    setItems((current) =>
+      current.map((item) =>
+        item.post.id === updatedPost.id ? { ...item, post: updatedPost } : item,
+      ),
+    );
+  }
+
+  useEffect(() => {
+    let active = true;
+
+    async function refreshProfileItems() {
+      try {
+        const nextItems = await readProfileItems(activeTab, view);
+        if (active) {
+          setItems(nextItems);
+          setItemsMessage(null);
+        }
+      } catch (error) {
+        if (active) {
+          setItemsMessage(
+            error instanceof Error
+              ? error.message
+              : "The connection was interrupted. Please try again.",
+          );
+        }
+      } finally {
+        if (active) {
+          setItemsLoading(false);
+        }
+      }
+    }
+
+    void refreshProfileItems();
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, view.userID, view.isCurrentUser]);
 
   async function toggleFollow() {
     setFollowBusy(true);
@@ -125,34 +191,53 @@ export function ProfilePage({ profile }: { profile: UserProfileView }) {
         <ProfileTabButton
           active={activeTab === "posts"}
           label="Posts"
-          onClick={() => setActiveTab("posts")}
+          onClick={() => {
+            if (activeTab !== "posts") {
+              setItemsLoading(true);
+              setActiveTab("posts");
+            }
+          }}
         />
         {view.isCurrentUser ? (
           <ProfileTabButton
             active={activeTab === "likes"}
             label="Likes"
-            onClick={() => setActiveTab("likes")}
+            onClick={() => {
+              if (activeTab !== "likes") {
+                setItemsLoading(true);
+                setActiveTab("likes");
+              }
+            }}
           />
         ) : null}
       </div>
 
-      <section className="px-8 py-14 text-center">
-        {activeTab === "likes" && view.isCurrentUser ? (
-          <>
-            <h3 className="text-2xl font-black">Your likes are private.</h3>
-            <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-[#71767b]">
-              Liked posts will appear here after Phase 5 interactions land.
-            </p>
-          </>
-        ) : (
-          <>
-            <h3 className="text-2xl font-black">No posts yet.</h3>
-            <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-[#71767b]">
-              Posts and reposts arrive in the posting and feed phases.
-            </p>
-          </>
-        )}
-      </section>
+      {itemsMessage ? (
+        <p className="border-b border-[#2f3336] px-4 py-3 text-sm font-bold text-[#ff8b94]">
+          {itemsMessage}
+        </p>
+      ) : null}
+
+      {itemsLoading ? (
+        <section className="px-8 py-14 text-center text-sm font-bold text-[#71767b]">
+          Loading posts...
+        </section>
+      ) : (
+        <FeedList
+          emptyMessage={
+            activeTab === "likes" && view.isCurrentUser
+              ? "Posts you like are private and will appear here."
+              : "Posts and reposts from this profile will appear here."
+          }
+          items={items}
+          onDeleted={(postId) =>
+            setItems((current) =>
+              current.filter((item) => item.post.id !== postId),
+            )
+          }
+          onPostUpdated={updatePostInItems}
+        />
+      )}
 
       {editing ? (
         <EditProfileModal

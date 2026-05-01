@@ -1,8 +1,10 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { GET as getMe } from "@/app/api/users/me/route";
+import { GET as getMyLikes } from "@/app/api/users/me/likes/route";
 import { PATCH as patchMeProfile } from "@/app/api/users/me/profile/route";
 import { GET as getPublicProfile } from "@/app/api/users/[userID]/route";
 import { POST as followPublicProfile } from "@/app/api/users/[userID]/follow/route";
+import { GET as getProfilePosts } from "@/app/api/users/[userID]/posts/route";
 import type { UserProfileView } from "@/features/users/profile";
 
 const authMock = vi.hoisted(() => vi.fn());
@@ -13,12 +15,17 @@ const repositoryMocks = vi.hoisted(() => ({
   followUser: vi.fn(),
   unfollowUser: vi.fn(),
 }));
+const postRepositoryMocks = vi.hoisted(() => ({
+  listProfilePosts: vi.fn(),
+  listLikedPosts: vi.fn(),
+}));
 
 vi.mock("../auth", () => ({
   auth: authMock,
 }));
 
 vi.mock("@/server/users/repository", () => repositoryMocks);
+vi.mock("@/server/posts/repository", () => postRepositoryMocks);
 
 const session = {
   user: {
@@ -44,6 +51,7 @@ describe("users API routes", () => {
   beforeEach(() => {
     authMock.mockReset();
     Object.values(repositoryMocks).forEach((mock) => mock.mockReset());
+    Object.values(postRepositoryMocks).forEach((mock) => mock.mockReset());
   });
 
   it("rejects current profile reads when unauthenticated", async () => {
@@ -152,6 +160,46 @@ describe("users API routes", () => {
     expect(repositoryMocks.followUser).not.toHaveBeenCalled();
     expect(await response.json()).toMatchObject({
       status: "self_follow",
+    });
+  });
+
+  it("returns public profile posts and current-user private likes", async () => {
+    authMock.mockResolvedValue(session);
+    repositoryMocks.getPublicUserProfileByUserID.mockResolvedValue({
+      ...profile,
+      id: "507f1f77bcf86cd799439012",
+      userID: "lee",
+      isCurrentUser: false,
+    });
+    postRepositoryMocks.listProfilePosts.mockResolvedValue([
+      { id: "post_feed" },
+    ]);
+    postRepositoryMocks.listLikedPosts.mockResolvedValue([
+      { id: "liked_feed" },
+    ]);
+
+    const profilePostsResponse = await getProfilePosts(
+      new Request("http://localhost"),
+      {
+        params: Promise.resolve({ userID: "lee" }),
+      },
+    );
+    const likesResponse = await getMyLikes();
+
+    expect(profilePostsResponse.status).toBe(200);
+    expect(postRepositoryMocks.listProfilePosts).toHaveBeenCalledWith({
+      profileUserId: "507f1f77bcf86cd799439012",
+      viewerId: session.user.id,
+    });
+    expect(await profilePostsResponse.json()).toMatchObject({
+      items: [{ id: "post_feed" }],
+    });
+    expect(likesResponse.status).toBe(200);
+    expect(postRepositoryMocks.listLikedPosts).toHaveBeenCalledWith(
+      session.user.id,
+    );
+    expect(await likesResponse.json()).toMatchObject({
+      items: [{ id: "liked_feed" }],
     });
   });
 });

@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ProfilePage } from "@/components/profile/profile-page";
 import type { UserProfileView } from "@/features/users/profile";
 
@@ -23,7 +23,18 @@ const baseProfile: UserProfileView = {
 };
 
 describe("ProfilePage", () => {
-  it("shows edit controls and Likes for the current user", () => {
+  beforeEach(() => {
+    vi.unstubAllGlobals();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({ items: [] }),
+      }),
+    );
+  });
+
+  it("shows edit controls and Likes for the current user", async () => {
     render(<ProfilePage profile={baseProfile} />);
 
     expect(
@@ -31,9 +42,11 @@ describe("ProfilePage", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Likes" })).toBeInTheDocument();
     expect(screen.getByText("@ric2k1")).toBeInTheDocument();
+    expect(await screen.findByText("Nothing here yet.")).toBeInTheDocument();
+    expect(fetch).toHaveBeenCalledWith("/api/users/ric2k1/posts");
   });
 
-  it("shows Follow and hides Likes on public profiles", () => {
+  it("shows Follow and hides Likes on public profiles", async () => {
     render(
       <ProfilePage
         profile={{
@@ -49,5 +62,17 @@ describe("ProfilePage", () => {
     expect(
       screen.queryByRole("button", { name: "Likes" }),
     ).not.toBeInTheDocument();
+    expect(await screen.findByText("Nothing here yet.")).toBeInTheDocument();
+    expect(fetch).toHaveBeenCalledWith("/api/users/lee/posts");
+  });
+
+  it("loads private likes only from the current user's Likes tab", async () => {
+    render(<ProfilePage profile={baseProfile} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Likes" }));
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith("/api/users/me/likes");
+    });
   });
 });
