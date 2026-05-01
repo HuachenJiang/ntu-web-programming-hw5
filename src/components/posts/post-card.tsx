@@ -84,6 +84,60 @@ function Avatar({ author }: { author: PostAuthorView }) {
   );
 }
 
+function CommentIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-[18px] w-[18px]"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M7.5 17.5 4 20v-4.5a7 7 0 1 1 3.5 2Z" />
+    </svg>
+  );
+}
+
+function RepostIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-[18px] w-[18px]"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M17 3.5 20.5 7 17 10.5" />
+      <path d="M3.5 7h17" />
+      <path d="M7 20.5 3.5 17 7 13.5" />
+      <path d="M20.5 17h-17" />
+    </svg>
+  );
+}
+
+function LikeIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-[18px] w-[18px]"
+      viewBox="0 0 24 24"
+      fill={filled ? "currentColor" : "none"}
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" />
+    </svg>
+  );
+}
+
 export function PostCard({
   item,
   onDeleted,
@@ -164,7 +218,9 @@ export function PostCard({
   }
 
   const actionButtonClass =
-    "flex min-h-9 min-w-0 items-center gap-2 rounded-full px-2 text-sm font-bold text-[#71767b] transition hover:bg-[#031018] hover:text-[#1d9bf0]";
+    "group flex min-h-9 min-w-0 items-center gap-1 text-sm font-bold text-[#71767b] transition disabled:opacity-60";
+  const actionIconClass =
+    "flex h-8 w-8 items-center justify-center rounded-full transition";
 
   return (
     <article
@@ -258,7 +314,12 @@ export function PostCard({
               className={actionButtonClass}
               aria-label="Comment"
             >
-              <span aria-hidden="true">C</span>
+              <span
+                aria-hidden="true"
+                className={`${actionIconClass} group-hover:bg-[#031018] group-hover:text-[#1d9bf0]`}
+              >
+                <CommentIcon />
+              </span>
               <span>{compactCount(post.commentCount)}</span>
             </button>
             <button
@@ -273,7 +334,12 @@ export function PostCard({
               }`}
               aria-label={post.viewerHasReposted ? "Undo repost" : "Repost"}
             >
-              <span aria-hidden="true">R</span>
+              <span
+                aria-hidden="true"
+                className={`${actionIconClass} group-hover:bg-[#001f16] group-hover:text-[#00ba7c]`}
+              >
+                <RepostIcon />
+              </span>
               <span>{compactCount(post.repostCount)}</span>
             </button>
             <button
@@ -288,7 +354,12 @@ export function PostCard({
               }`}
               aria-label={post.viewerHasLiked ? "Unlike" : "Like"}
             >
-              <span aria-hidden="true">L</span>
+              <span
+                aria-hidden="true"
+                className={`${actionIconClass} group-hover:bg-[#200914] group-hover:text-[#f91880]`}
+              >
+                <LikeIcon filled={post.viewerHasLiked} />
+              </span>
               <span>{compactCount(post.likeCount)}</span>
             </button>
             <span className="flex min-h-9 items-center justify-end text-sm font-bold text-[#71767b]">

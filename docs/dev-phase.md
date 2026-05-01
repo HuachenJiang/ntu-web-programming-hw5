@@ -169,6 +169,7 @@ Work:
 - Add Home feed with `All` and `Following` tabs.
 - Sort all feed lists from newest to oldest.
 - Show author avatar, display name, `@userID`, relative time, full content, comment count, repost count, and like count.
+- Show comment, repost, and like actions with recognizable icons instead of letter placeholders.
 - Route mention clicks to the mentioned user's profile.
 - Support comments, reposts, likes, and unlikes.
 - Support deleting own original posts from a post menu.
