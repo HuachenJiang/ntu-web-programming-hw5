@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { validatePostContent } from "@/features/posts/content";
-import { createComment } from "@/server/posts/repository";
+import { createComment, getPostThread } from "@/server/posts/repository";
+import { publishCommentCreated } from "@/server/realtime/pusher";
 import { auth } from "../../../../../../auth";
 
 export const runtime = "nodejs";
@@ -40,6 +41,19 @@ export async function POST(request: Request, context: RouteContext) {
       { status: "not_found", message: "Post was not found." },
       { status: 404 },
     );
+  }
+
+  const parentThread = await getPostThread({
+    postId,
+    viewerId: session.user.id,
+  });
+
+  if (parentThread) {
+    await publishCommentCreated({
+      comment,
+      createdByUserId: session.user.id,
+      parentPost: parentThread.post,
+    });
   }
 
   return NextResponse.json({ status: "ok", comment }, { status: 201 });

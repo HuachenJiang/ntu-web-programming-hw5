@@ -23,6 +23,22 @@ type ApiPostResult = {
   post?: PostDetailView;
 };
 
+function postStateKey(post: PostDetailView | null): string {
+  if (!post) {
+    return "empty";
+  }
+
+  return [
+    post.id,
+    post.commentCount,
+    post.repostCount,
+    post.likeCount,
+    post.viewerHasLiked,
+    post.viewerHasReposted,
+    post.canDelete,
+  ].join(":");
+}
+
 function formatRelativeTime(value: string): string {
   const timestamp = new Date(value).getTime();
   const seconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
@@ -146,10 +162,17 @@ export function PostCard({
   prominent = false,
 }: PostCardProps) {
   const router = useRouter();
-  const [post, setPost] = useState(directPost ?? item?.post ?? null);
+  const incomingPost = directPost ?? item?.post ?? null;
+  const incomingPostKey = postStateKey(incomingPost);
+  const [localPost, setLocalPost] = useState<{
+    baseKey: string;
+    post: PostDetailView;
+  } | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const post =
+    localPost?.baseKey === incomingPostKey ? localPost.post : incomingPost;
 
   if (!post) {
     return null;
@@ -178,7 +201,7 @@ export function PostCard({
         return;
       }
 
-      setPost(result.post);
+      setLocalPost({ baseKey: incomingPostKey, post: result.post });
       onPostUpdated?.(result.post);
     } catch {
       setMessage("The connection was interrupted. Please try again.");

@@ -16,6 +16,8 @@ const likePostMock = vi.hoisted(() => vi.fn());
 const unlikePostMock = vi.hoisted(() => vi.fn());
 const repostPostMock = vi.hoisted(() => vi.fn());
 const unrepostPostMock = vi.hoisted(() => vi.fn());
+const publishCommentCreatedMock = vi.hoisted(() => vi.fn());
+const publishPostCountsUpdatedMock = vi.hoisted(() => vi.fn());
 
 vi.mock("../auth", () => ({
   auth: authMock,
@@ -37,6 +39,11 @@ vi.mock("@/server/posts/repository", () => ({
   unlikePost: unlikePostMock,
   repostPost: repostPostMock,
   unrepostPost: unrepostPostMock,
+}));
+
+vi.mock("@/server/realtime/pusher", () => ({
+  publishCommentCreated: publishCommentCreatedMock,
+  publishPostCountsUpdated: publishPostCountsUpdatedMock,
 }));
 
 import { POST as createPostRoute } from "@/app/api/posts/route";
@@ -95,6 +102,8 @@ describe("post and draft APIs", () => {
     unlikePostMock.mockReset();
     repostPostMock.mockReset();
     unrepostPostMock.mockReset();
+    publishCommentCreatedMock.mockReset();
+    publishPostCountsUpdatedMock.mockReset();
   });
 
   it("rejects unauthenticated post creation", async () => {
@@ -262,7 +271,13 @@ describe("post and draft APIs", () => {
 
   it("creates comments with shared post validation", async () => {
     authMock.mockResolvedValue(session);
-    createCommentMock.mockResolvedValue({ id: "comment_1" });
+    const comment = { id: "comment_1" };
+    const parentPost = { id: "507f1f77bcf86cd799439013", commentCount: 1 };
+    createCommentMock.mockResolvedValue(comment);
+    getPostThreadMock.mockResolvedValue({
+      post: parentPost,
+      replies: [comment],
+    });
     const context = {
       params: Promise.resolve({ postId: "507f1f77bcf86cd799439013" }),
     };
@@ -280,6 +295,11 @@ describe("post and draft APIs", () => {
         parsed: expect.objectContaining({ content: "reply @rico" }),
       }),
     );
+    expect(publishCommentCreatedMock).toHaveBeenCalledWith({
+      comment,
+      createdByUserId: session.user.id,
+      parentPost,
+    });
   });
 
   it("likes, unlikes, reposts, and unreposts posts", async () => {
@@ -314,5 +334,35 @@ describe("post and draft APIs", () => {
       postId: "507f1f77bcf86cd799439013",
       userId: session.user.id,
     });
+    expect(publishPostCountsUpdatedMock).toHaveBeenCalledWith({
+      action: "like",
+      changedByUserId: session.user.id,
+      post: { id: "post_1", likeCount: 1 },
+    });
+    expect(publishPostCountsUpdatedMock).toHaveBeenCalledWith({
+      action: "unlike",
+      changedByUserId: session.user.id,
+      post: { id: "post_1", likeCount: 0 },
+    });
+  });
+
+  it("does not publish realtime events for missing comments or likes", async () => {
+    authMock.mockResolvedValue(session);
+    createCommentMock.mockResolvedValue(null);
+    likePostMock.mockResolvedValue(null);
+    const context = {
+      params: Promise.resolve({ postId: "507f1f77bcf86cd799439013" }),
+    };
+
+    expect(
+      (await createCommentRoute(jsonRequest({ content: "reply" }), context))
+        .status,
+    ).toBe(404);
+    expect(
+      (await likePostRoute(new Request("http://localhost"), context)).status,
+    ).toBe(404);
+
+    expect(publishCommentCreatedMock).not.toHaveBeenCalled();
+    expect(publishPostCountsUpdatedMock).not.toHaveBeenCalled();
   });
 });

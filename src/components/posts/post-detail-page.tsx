@@ -1,13 +1,20 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   parsePostContent,
   POST_MAX_COUNTED_LENGTH,
 } from "@/features/posts/content";
 import { PostCard } from "@/components/posts/post-card";
 import type { AppShellUser } from "@/components/app/app-shell";
+import { usePostRealtimeSubscriptions } from "@/features/realtime/client";
+import {
+  appendRealtimeCommentToThread,
+  applyPostCountsToThread,
+  type CommentCreatedPayload,
+  type PostCountsUpdatedPayload,
+} from "@/features/realtime/events";
 import type { PostDetailView, PostThreadView } from "@/server/posts/repository";
 
 type ApiCommentResult = {
@@ -36,6 +43,34 @@ export function PostDetailPage({
 }) {
   const router = useRouter();
   const [thread, setThread] = useState(initialThread);
+  const visiblePostIds = useMemo(
+    () => [thread.post.id, ...thread.replies.map((reply) => reply.id)],
+    [thread],
+  );
+  const handleCountsUpdated = useCallback(
+    (payload: PostCountsUpdatedPayload) => {
+      setThread((current) => applyPostCountsToThread(current, payload));
+    },
+    [],
+  );
+  const handleCommentCreated = useCallback(
+    (payload: CommentCreatedPayload) => {
+      setThread((current) =>
+        appendRealtimeCommentToThread({
+          currentUserID: currentUser.userID,
+          payload,
+          thread: current,
+        }),
+      );
+    },
+    [currentUser.userID],
+  );
+
+  usePostRealtimeSubscriptions({
+    postIds: visiblePostIds,
+    onCommentCreated: handleCommentCreated,
+    onCountsUpdated: handleCountsUpdated,
+  });
 
   return (
     <main className="min-h-screen">

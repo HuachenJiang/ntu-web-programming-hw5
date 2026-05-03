@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { HomeFeed } from "@/components/app/home-feed";
 import { PostDetailPage } from "@/components/posts/post-detail-page";
@@ -14,9 +20,14 @@ const routerMock = vi.hoisted(() => ({
   back: vi.fn(),
   push: vi.fn(),
 }));
+const usePostRealtimeSubscriptionsMock = vi.hoisted(() => vi.fn());
 
 vi.mock("next/navigation", () => ({
   useRouter: () => routerMock,
+}));
+
+vi.mock("@/features/realtime/client", () => ({
+  usePostRealtimeSubscriptions: usePostRealtimeSubscriptionsMock,
 }));
 
 const currentUser: AppShellUser = {
@@ -63,6 +74,7 @@ describe("Phase 5 feed UI", () => {
   beforeEach(() => {
     routerMock.back.mockReset();
     routerMock.push.mockReset();
+    usePostRealtimeSubscriptionsMock.mockReset();
     vi.unstubAllGlobals();
   });
 
@@ -94,6 +106,42 @@ describe("Phase 5 feed UI", () => {
         "Follow another user to build a focused timeline.",
       ),
     ).toBeInTheDocument();
+  });
+
+  it("applies realtime feed counts without refreshing or navigating", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            items: [feedItem],
+          }),
+        }),
+      ),
+    );
+
+    render(<HomeFeed currentUser={currentUser} />);
+
+    expect(await screen.findByText("hello feed")).toBeInTheDocument();
+    const realtimeConfig =
+      usePostRealtimeSubscriptionsMock.mock.calls.at(-1)?.[0];
+
+    act(() => {
+      realtimeConfig.onCountsUpdated({
+        postId: post.id,
+        commentCount: 2,
+        repostCount: 0,
+        likeCount: 7,
+        updatedAt: "2026-05-01T00:00:00.000Z",
+        changedByUserId: "507f1f77bcf86cd799439099",
+        action: "like",
+      });
+    });
+
+    expect(screen.getByText("7")).toBeInTheDocument();
+    expect(routerMock.push).not.toHaveBeenCalled();
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 
   it("updates post cards through like and delete actions", async () => {
@@ -213,5 +261,65 @@ describe("Phase 5 feed UI", () => {
       );
     });
     expect(await screen.findByText("reply body")).toBeInTheDocument();
+  });
+
+  it("applies realtime detail comments once without refreshing", () => {
+    const thread: PostThreadView = {
+      post,
+      replies: [],
+    };
+    vi.stubGlobal("fetch", vi.fn());
+
+    render(<PostDetailPage currentUser={currentUser} initialThread={thread} />);
+
+    const realtimeConfig =
+      usePostRealtimeSubscriptionsMock.mock.calls.at(-1)?.[0];
+    const comment = {
+      ...post,
+      id: "507f1f77bcf86cd799439014",
+      parentId: post.id,
+      author: {
+        id: "507f1f77bcf86cd799439015",
+        userID: "maya",
+        name: "Maya User",
+        image: null,
+      },
+      authorId: "507f1f77bcf86cd799439015",
+      content: "realtime reply",
+    };
+
+    act(() => {
+      realtimeConfig.onCommentCreated({
+        parentPost: {
+          postId: post.id,
+          commentCount: 1,
+          repostCount: 0,
+          likeCount: 0,
+          updatedAt: "2026-05-01T00:00:00.000Z",
+          changedByUserId: comment.authorId,
+          action: "comment",
+        },
+        comment,
+        createdByUserId: comment.authorId,
+      });
+      realtimeConfig.onCommentCreated({
+        parentPost: {
+          postId: post.id,
+          commentCount: 1,
+          repostCount: 0,
+          likeCount: 0,
+          updatedAt: "2026-05-01T00:00:00.000Z",
+          changedByUserId: comment.authorId,
+          action: "comment",
+        },
+        comment,
+        createdByUserId: comment.authorId,
+      });
+    });
+
+    expect(screen.getAllByText("realtime reply")).toHaveLength(1);
+    expect(screen.getByText("1")).toBeInTheDocument();
+    expect(routerMock.push).not.toHaveBeenCalled();
+    expect(fetch).not.toHaveBeenCalled();
   });
 });

@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { AppShellUser } from "@/components/app/app-shell";
 import { usePostCreatedPreview } from "@/components/posts/post-created-context";
 import { FeedList } from "@/components/posts/feed-list";
 import { InlinePostComposer } from "@/components/posts/post-composer";
+import { usePostRealtimeSubscriptions } from "@/features/realtime/client";
+import {
+  applyPostCountsToFeedItems,
+  type PostCountsUpdatedPayload,
+} from "@/features/realtime/events";
 import type { FeedItemView, PostDetailView } from "@/server/posts/repository";
 
 type FeedTab = "all" | "following";
@@ -33,6 +38,16 @@ export function HomeFeed({ currentUser }: { currentUser: AppShellUser }) {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
   const { latestPost } = usePostCreatedPreview();
+  const visiblePostIds = useMemo(
+    () => items.map((item) => item.post.id),
+    [items],
+  );
+  const handleCountsUpdated = useCallback(
+    (payload: PostCountsUpdatedPayload) => {
+      setItems((current) => applyPostCountsToFeedItems(current, payload));
+    },
+    [],
+  );
 
   async function readFeed(nextTab: FeedTab): Promise<FeedItemView[]> {
     const response = await fetch(`/api/feed?tab=${nextTab}`);
@@ -92,6 +107,11 @@ export function HomeFeed({ currentUser }: { currentUser: AppShellUser }) {
       active = false;
     };
   }, [tab, latestPost?.id]);
+
+  usePostRealtimeSubscriptions({
+    postIds: visiblePostIds,
+    onCountsUpdated: handleCountsUpdated,
+  });
 
   return (
     <main className="min-h-screen">

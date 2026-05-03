@@ -161,6 +161,17 @@ Pusher is used for realtime likes and comments:
 4. Subscribed clients update visible interaction counts without requiring refresh.
 5. New content should not interrupt a reader's current position; feed-level notices can be added later.
 
+Phase 6 uses public per-post channels named `post-{postId}` for visible posts
+and comments. Successful like and unlike mutations publish
+`post-counts-updated` with the target post id, denormalized comment/repost/like
+counts, update time, action, and acting user id. Successful comment mutations
+publish the same count update for the parent and a `comment-created` event with
+the parent count snapshot plus the new direct reply. Clients merge these events
+into already rendered feed/detail state without calling a route refresh,
+navigating, or resetting scroll position. MongoDB and REST responses remain the
+authoritative mutation result; a failed Pusher trigger is logged after the
+database write succeeds.
+
 ## Advanced Features
 
 Advanced features are deferred until the basic app is complete:

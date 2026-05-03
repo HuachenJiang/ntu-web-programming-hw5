@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { likePost, unlikePost } from "@/server/posts/repository";
+import { publishPostCountsUpdated } from "@/server/realtime/pusher";
 import { auth } from "../../../../../../auth";
 
 export const runtime = "nodejs";
@@ -31,6 +32,12 @@ export async function POST(_request: Request, context: RouteContext) {
     );
   }
 
+  await publishPostCountsUpdated({
+    action: "like",
+    changedByUserId: session.user.id,
+    post,
+  });
+
   return NextResponse.json({ status: "ok", post });
 }
 
@@ -56,6 +63,12 @@ export async function DELETE(_request: Request, context: RouteContext) {
       { status: 404 },
     );
   }
+
+  await publishPostCountsUpdated({
+    action: "unlike",
+    changedByUserId: session.user.id,
+    post,
+  });
 
   return NextResponse.json({ status: "ok", post });
 }

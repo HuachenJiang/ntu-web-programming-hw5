@@ -160,7 +160,7 @@ Acceptance criteria:
 
 ## Phase 5: Feed, Interactions & Recursive Comments
 
-Status: active
+Status: complete
 
 Goal: implement the main forum reading and interaction behavior.
 
@@ -205,6 +205,8 @@ Acceptance criteria:
 
 ## Phase 6: Realtime Pusher
 
+Status: complete
+
 Goal: add realtime interaction updates.
 
 Work:
@@ -214,6 +216,11 @@ Work:
 - Subscribe visible feed/detail components to relevant post/comment channels.
 - Update interaction counts without page refresh.
 - Avoid interrupting the reader's current scroll position.
+- Use one public channel per visible post/comment: `post-{postId}`.
+- Publish `post-counts-updated` after successful like/unlike/comment
+  mutations.
+- Publish `comment-created` after successful comment mutations so open detail
+  views can append the direct reply without refreshing.
 
 Acceptance criteria:
 
