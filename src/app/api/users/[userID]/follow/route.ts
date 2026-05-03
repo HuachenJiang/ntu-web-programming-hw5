@@ -86,10 +86,14 @@ export async function POST(
     currentUserId: request.currentUserId,
     targetUserId: request.target.id,
   });
+  const profile = await getPublicUserProfileByUserID({
+    userID: request.target.userID,
+    currentUserId: request.currentUserId,
+  });
 
   return NextResponse.json({
     status: "ok",
-    profile: {
+    profile: profile ?? {
       ...request.target,
       viewerFollows: true,
     },
@@ -110,10 +114,14 @@ export async function DELETE(
     currentUserId: request.currentUserId,
     targetUserId: request.target.id,
   });
+  const profile = await getPublicUserProfileByUserID({
+    userID: request.target.userID,
+    currentUserId: request.currentUserId,
+  });
 
   return NextResponse.json({
     status: "ok",
-    profile: {
+    profile: profile ?? {
       ...request.target,
       viewerFollows: false,
     },

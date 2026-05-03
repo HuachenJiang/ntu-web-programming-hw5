@@ -24,6 +24,8 @@ export type UserProfileView = {
   bannerUrl: string | null;
   bio: string;
   postCount: number;
+  followingCount: number;
+  followerCount: number;
   isCurrentUser: boolean;
   viewerFollows: boolean;
 };

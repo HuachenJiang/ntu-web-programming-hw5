@@ -141,6 +141,36 @@ describe("Phase 5 feed UI", () => {
     });
   });
 
+  it("does not render card type labels", () => {
+    render(<PostCard post={post} />);
+
+    expect(screen.queryByText("Post")).not.toBeInTheDocument();
+    expect(screen.queryByText("Reply")).not.toBeInTheDocument();
+  });
+
+  it("hides delete controls on repost feed entries", () => {
+    render(
+      <PostCard
+        item={{
+          ...feedItem,
+          id: "repost:507f1f77bcf86cd799439014",
+          kind: "repost",
+          repostedBy: {
+            id: "507f1f77bcf86cd799439015",
+            userID: "maya",
+            name: "Maya User",
+            image: null,
+          },
+        }}
+      />,
+    );
+
+    expect(screen.getByText("Maya User reposted")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Post menu" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("renders recursive detail controls and creates a reply", async () => {
     const thread: PostThreadView = {
       post,

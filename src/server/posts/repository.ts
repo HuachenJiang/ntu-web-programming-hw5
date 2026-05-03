@@ -856,6 +856,9 @@ export async function deletePost({
       { _id: postObjectId, authorId: toObjectId(userId), deleted: false },
       { $set: { deleted: true, deletedAt: now, updatedAt: now } },
     );
+  await getAppDatabase()
+    .collection<MongoInteractionDocument>("reposts")
+    .deleteMany({ targetPostId: postObjectId });
 
   if (post.parentId) {
     await getAppDatabase()

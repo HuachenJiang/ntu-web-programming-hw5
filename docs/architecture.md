@@ -66,8 +66,13 @@ Phase 5 makes these concrete ownership choices:
 - Profile post tabs show a user's public top-level posts and reposts. Own
   profile likes are private to the signed-in viewer and are never exposed on
   other public profiles.
+- Profile views derive following and follower counts from the `follows`
+  collection.
 - Deletion is a soft delete for owned original post/comment documents. Repost
-  entries are removed only through unrepost, not through post deletion.
+  feed entries cannot be deleted as original posts; users remove their own
+  repost through unrepost. When an original post/comment is deleted, repost
+  records targeting it are deleted so stale repost entries disappear from
+  feeds and profiles.
 
 ## Authentication Flow
 
@@ -142,6 +147,7 @@ Profile behavior:
 - Own profile supports editing name, avatar, banner, and bio.
 - Avatar and banner editing use HTTP/HTTPS image URL fields in the initial scope. File uploads and CDN-backed media are deferred until a later media phase.
 - `userID` cannot be changed after registration.
+- Profiles show following and follower counts.
 - Other users' profiles are read-only and show Follow/Following instead of Edit Profile.
 - Other users' liked posts are private and must not be shown.
 

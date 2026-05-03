@@ -210,7 +210,10 @@ describe("posts repository Phase 5 behavior", () => {
       findOne: vi.fn().mockResolvedValue(comment),
       updateOne: vi.fn().mockResolvedValue({ modifiedCount: 1 }),
     };
-    const { repository } = await loadRepository({ posts });
+    const reposts = {
+      deleteMany: vi.fn().mockResolvedValue({ deletedCount: 2 }),
+    };
+    const { repository } = await loadRepository({ posts, reposts });
 
     const result = await repository.deletePost({
       postId: comment._id.toHexString(),
@@ -237,5 +240,8 @@ describe("posts repository Phase 5 behavior", () => {
       },
       { $inc: { commentCount: -1 } },
     );
+    expect(reposts.deleteMany).toHaveBeenCalledWith({
+      targetPostId: comment._id,
+    });
   });
 });

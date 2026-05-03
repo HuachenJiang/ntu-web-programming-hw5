@@ -3,7 +3,10 @@ import { GET as getMe } from "@/app/api/users/me/route";
 import { GET as getMyLikes } from "@/app/api/users/me/likes/route";
 import { PATCH as patchMeProfile } from "@/app/api/users/me/profile/route";
 import { GET as getPublicProfile } from "@/app/api/users/[userID]/route";
-import { POST as followPublicProfile } from "@/app/api/users/[userID]/follow/route";
+import {
+  DELETE as unfollowPublicProfile,
+  POST as followPublicProfile,
+} from "@/app/api/users/[userID]/follow/route";
 import { GET as getProfilePosts } from "@/app/api/users/[userID]/posts/route";
 import type { UserProfileView } from "@/features/users/profile";
 
@@ -43,6 +46,8 @@ const profile: UserProfileView = {
   bannerUrl: null,
   bio: "Building Orbit.",
   postCount: 0,
+  followingCount: 0,
+  followerCount: 0,
   isCurrentUser: true,
   viewerFollows: false,
 };
@@ -160,6 +165,69 @@ describe("users API routes", () => {
     expect(repositoryMocks.followUser).not.toHaveBeenCalled();
     expect(await response.json()).toMatchObject({
       status: "self_follow",
+    });
+  });
+
+  it("returns refreshed follow counts after follow and unfollow", async () => {
+    authMock.mockResolvedValue(session);
+    const target = {
+      ...profile,
+      id: "507f1f77bcf86cd799439012",
+      userID: "lee",
+      isCurrentUser: false,
+      followerCount: 2,
+    };
+    repositoryMocks.getPublicUserProfileByUserID
+      .mockResolvedValueOnce(target)
+      .mockResolvedValueOnce({
+        ...target,
+        viewerFollows: true,
+        followerCount: 3,
+      })
+      .mockResolvedValueOnce({
+        ...target,
+        viewerFollows: true,
+        followerCount: 3,
+      })
+      .mockResolvedValueOnce({
+        ...target,
+        viewerFollows: false,
+        followerCount: 2,
+      });
+
+    const context = {
+      params: Promise.resolve({ userID: "lee" }),
+    };
+    const followResponse = await followPublicProfile(
+      new Request("http://localhost", { method: "POST" }),
+      context,
+    );
+    const unfollowResponse = await unfollowPublicProfile(
+      new Request("http://localhost", { method: "DELETE" }),
+      context,
+    );
+
+    expect(followResponse.status).toBe(200);
+    expect(unfollowResponse.status).toBe(200);
+    expect(repositoryMocks.followUser).toHaveBeenCalledWith({
+      currentUserId: session.user.id,
+      targetUserId: target.id,
+    });
+    expect(repositoryMocks.unfollowUser).toHaveBeenCalledWith({
+      currentUserId: session.user.id,
+      targetUserId: target.id,
+    });
+    expect(await followResponse.json()).toMatchObject({
+      profile: {
+        viewerFollows: true,
+        followerCount: 3,
+      },
+    });
+    expect(await unfollowResponse.json()).toMatchObject({
+      profile: {
+        viewerFollows: false,
+        followerCount: 2,
+      },
     });
   });
 

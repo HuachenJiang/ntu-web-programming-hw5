@@ -176,6 +176,7 @@ Work:
 - Prevent deleting repost entries as if they were original posts.
 - Implement recursive post/comment detail routes with a back arrow and title `Post`.
 - Add profile tabs for public posts/reposts and private own likes.
+- Show following and follower counts on profile pages.
 - Add REST APIs for feed reads, post detail reads, comments, likes, reposts,
   deletes, profile posts, and own liked posts.
 - Store likes and reposts in dedicated collections while keeping denormalized
@@ -196,6 +197,10 @@ Acceptance criteria:
   liked-post lists.
 - Repost feed entries cannot be deleted as original posts; users remove their
   own repost through the repost interaction.
+- Deleting an original post/comment removes repost records that point to it so
+  related repost entries disappear from feeds and profiles.
+- Profiles show the number of accounts the user follows and the number of
+  accounts following the user.
 - Another user's Likes tab is never exposed.
 
 ## Phase 6: Realtime Pusher

@@ -55,11 +55,15 @@ function optionalString(value: unknown): string | null {
 }
 
 function mapProfile({
+  followerCount,
+  followingCount,
   postCount,
   user,
   currentUserId,
   viewerFollows,
 }: {
+  followerCount: number;
+  followingCount: number;
   postCount: number;
   user: MongoUserDocument;
   currentUserId?: string | null;
@@ -79,6 +83,8 @@ function mapProfile({
     bannerUrl: optionalString(user.bannerUrl),
     bio: optionalString(user.bio) ?? "",
     postCount,
+    followingCount,
+    followerCount,
     isCurrentUser: currentUserId === id,
     viewerFollows,
   };
@@ -104,6 +110,47 @@ async function doesFollow({
     );
 
   return Boolean(follow);
+}
+
+async function countFollowsForUser(userId: string): Promise<{
+  followingCount: number;
+  followerCount: number;
+}> {
+  const objectId = toObjectId(userId);
+  const follows = getAppDatabase().collection("follows");
+  const [followingCount, followerCount] = await Promise.all([
+    follows.countDocuments({ followerId: objectId }),
+    follows.countDocuments({ followingId: objectId }),
+  ]);
+
+  return {
+    followingCount,
+    followerCount,
+  };
+}
+
+async function mapProfileWithCounts({
+  user,
+  currentUserId,
+  viewerFollows,
+}: {
+  user: MongoUserDocument;
+  currentUserId?: string | null;
+  viewerFollows: boolean;
+}): Promise<UserProfileView | null> {
+  const id = user._id.toHexString();
+  const [postCount, followCounts] = await Promise.all([
+    countOriginalPostsByAuthor(id),
+    countFollowsForUser(id),
+  ]);
+
+  return mapProfile({
+    user,
+    currentUserId,
+    viewerFollows,
+    postCount,
+    ...followCounts,
+  });
 }
 
 export const mongoOnboardingRepository: OnboardingRepository = {
@@ -210,11 +257,10 @@ export async function getCurrentUserProfile(
     return null;
   }
 
-  return mapProfile({
+  return mapProfileWithCounts({
     user,
     currentUserId,
     viewerFollows: false,
-    postCount: await countOriginalPostsByAuthor(user._id.toHexString()),
   });
 }
 
@@ -244,11 +290,10 @@ export async function getPublicUserProfileByUserID({
         })
       : false;
 
-  return mapProfile({
+  return mapProfileWithCounts({
     user,
     currentUserId,
     viewerFollows,
-    postCount: await countOriginalPostsByAuthor(id),
   });
 }
 
@@ -281,11 +326,10 @@ export async function updateCurrentUserProfile({
     );
 
   return updatedUser
-    ? mapProfile({
+    ? mapProfileWithCounts({
         user: updatedUser,
         currentUserId,
         viewerFollows: false,
-        postCount: await countOriginalPostsByAuthor(currentUserId),
       })
     : null;
 }

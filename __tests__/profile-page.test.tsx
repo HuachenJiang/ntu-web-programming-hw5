@@ -18,6 +18,8 @@ const baseProfile: UserProfileView = {
   bannerUrl: null,
   bio: "Building Orbit.",
   postCount: 0,
+  followingCount: 7,
+  followerCount: 11,
   isCurrentUser: true,
   viewerFollows: false,
 };
@@ -41,7 +43,14 @@ describe("ProfilePage", () => {
       screen.getByRole("button", { name: "Edit Profile" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Likes" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Post" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("@ric2k1")).toBeInTheDocument();
+    expect(screen.getByText("Following")).toBeInTheDocument();
+    expect(screen.getByText("Followers")).toBeInTheDocument();
+    expect(screen.getByText("7")).toBeInTheDocument();
+    expect(screen.getByText("11")).toBeInTheDocument();
     expect(await screen.findByText("Nothing here yet.")).toBeInTheDocument();
     expect(fetch).toHaveBeenCalledWith("/api/users/ric2k1/posts");
   });

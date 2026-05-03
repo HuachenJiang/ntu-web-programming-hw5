@@ -221,6 +221,7 @@ export function PostCard({
     "group flex min-h-9 min-w-0 items-center gap-1 text-sm font-bold text-[#71767b] transition disabled:opacity-60";
   const actionIconClass =
     "flex h-8 w-8 items-center justify-center rounded-full transition";
+  const canShowDeleteMenu = post.canDelete && item?.kind !== "repost";
 
   return (
     <article
@@ -261,7 +262,7 @@ export function PostCard({
               </span>
             </div>
 
-            {post.canDelete ? (
+            {canShowDeleteMenu ? (
               <div className="relative">
                 <button
                   type="button"
@@ -304,7 +305,7 @@ export function PostCard({
             </p>
           ) : null}
 
-          <div className="mt-3 grid grid-cols-4 gap-2">
+          <div className="mt-3 grid grid-cols-3 gap-2">
             <button
               type="button"
               onClick={(event) => {
@@ -362,9 +363,6 @@ export function PostCard({
               </span>
               <span>{compactCount(post.likeCount)}</span>
             </button>
-            <span className="flex min-h-9 items-center justify-end text-sm font-bold text-[#71767b]">
-              {post.parentId ? "Reply" : "Post"}
-            </span>
           </div>
         </div>
       </div>
