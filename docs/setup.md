@@ -153,7 +153,7 @@ GITHUB_CLIENT_SECRET="PASTE_GITHUB_CLIENT_SECRET_HERE"
 11. For production, create a second GitHub OAuth app or update the existing one with:
 
 ```text
-Homepage URL: https://YOUR_L_PROJECT.vercel.app
+Homepage URL: https://YOUR_VERCEL_PROJECT.vercel.app
 Authorization callback URL: https://YOUR_VERCEL_PROJECT.vercel.app/api/auth/callback/github
 ```
 
@@ -252,20 +252,163 @@ Required values:
 - Production Google OAuth callback URL.
 - Production GitHub OAuth callback URL.
 
-Steps:
+Phase 7 is mostly a deployment and service-configuration phase. It should not
+need application code changes unless the production smoke test exposes a real
+bug.
 
-1. Push the repository to GitHub.
-2. Go to Vercel: `https://vercel.com/`.
-3. Create a new project from the GitHub repository.
-4. Keep the framework preset as Next.js once the app exists.
-5. Add every environment variable from this guide to the Vercel project.
-6. Set `NEXTAUTH_URL` to the production Vercel URL.
-7. Deploy the project.
-8. Copy the deployed URL.
-9. Add the deployed URL and OAuth callback URLs to Google Cloud Console.
-10. Add the deployed URL and GitHub callback URL to GitHub OAuth settings.
-11. Redeploy after changing OAuth or environment settings.
-12. Smoke test:
+### Before Creating the Vercel Project
+
+1. Make sure the latest local work is pushed to GitHub.
+2. Make sure MongoDB Atlas has a production-accessible cluster and database
+   user.
+3. Make sure Pusher Channels has an app created.
+4. Prepare these values before filling the Vercel form:
+
+```bash
+NEXTAUTH_SECRET="GENERATED_SECRET"
+GOOGLE_CLIENT_ID="GOOGLE_OAUTH_CLIENT_ID"
+GOOGLE_CLIENT_SECRET="GOOGLE_OAUTH_CLIENT_SECRET"
+GITHUB_CLIENT_ID="GITHUB_OAUTH_CLIENT_ID"
+GITHUB_CLIENT_SECRET="GITHUB_OAUTH_CLIENT_SECRET"
+MONGODB_URI="mongodb+srv://USERNAME:PASSWORD@CLUSTER_HOST/x_clone_hw5?retryWrites=true&w=majority"
+MONGODB_DB="x_clone_hw5"
+PUSHER_APP_ID="PUSHER_APP_ID"
+PUSHER_KEY="PUSHER_KEY"
+PUSHER_SECRET="PUSHER_SECRET"
+PUSHER_CLUSTER="PUSHER_CLUSTER"
+NEXT_PUBLIC_PUSHER_KEY="SAME_VALUE_AS_PUSHER_KEY"
+NEXT_PUBLIC_PUSHER_CLUSTER="SAME_VALUE_AS_PUSHER_CLUSTER"
+```
+
+Do not paste quote characters into the Vercel value fields unless Vercel shows
+that it is importing a whole `.env` file. For example, the Vercel key is
+`MONGODB_DB` and the value is `x_clone_hw5`, not `"x_clone_hw5"`.
+
+### Vercel New Project Form
+
+Use these values for the fields shown during **New Project** import:
+
+| Vercel field | What to select or enter |
+| --- | --- |
+| Vercel Team | Your personal Hobby team is fine for this homework app. |
+| Project Name | Keep `ntu-web-programming-hw5` or choose another lowercase, URL-safe name. This name usually becomes `https://PROJECT_NAME.vercel.app`. |
+| Application Preset | `Next.js` |
+| Root Directory | `./` because the Next.js app lives at the repository root. |
+| Build Command | Leave the detected default. If you manually enable the edit field, use `yarn build`. |
+| Output Directory | Leave the detected `Next.js default`. Do not enter `.next`. |
+| Install Command | Leave the detected default. If you manually enable the edit field, use `yarn install --frozen-lockfile`. |
+
+The project has `yarn.lock`, so Vercel should install dependencies with Yarn
+automatically.
+
+### Vercel Environment Variables
+
+In the **Environment Variables** section, add one row per variable. For Phase 7,
+set the environment selector to **Production**. If the form only shows
+**Production and Preview**, that is acceptable for the first homework deploy,
+but remember that OAuth preview deployments may not work unless their callback
+URLs are also registered.
+
+Add these rows:
+
+| Key | Value |
+| --- | --- |
+| `NEXTAUTH_URL` | `https://YOUR_VERCEL_PROJECT.vercel.app` |
+| `NEXTAUTH_SECRET` | The generated secret from the `Generate NEXTAUTH_SECRET` section. |
+| `GOOGLE_CLIENT_ID` | Google OAuth web client ID. |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth web client secret. |
+| `GITHUB_CLIENT_ID` | GitHub OAuth app client ID. |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth app client secret. |
+| `MONGODB_URI` | MongoDB Atlas connection string with the real username, password, cluster host, and database name. |
+| `MONGODB_DB` | `x_clone_hw5` |
+| `PUSHER_APP_ID` | Pusher Channels app ID. |
+| `PUSHER_KEY` | Pusher Channels key. |
+| `PUSHER_SECRET` | Pusher Channels secret. |
+| `PUSHER_CLUSTER` | Pusher Channels cluster, for example `ap3`, `us2`, or the cluster shown in Pusher. |
+| `NEXT_PUBLIC_PUSHER_KEY` | Same value as `PUSHER_KEY`. |
+| `NEXT_PUBLIC_PUSHER_CLUSTER` | Same value as `PUSHER_CLUSTER`. |
+
+If you know the project name will be `ntu-web-programming-hw5`, start with:
+
+```text
+NEXTAUTH_URL=https://ntu-web-programming-hw5.vercel.app
+```
+
+If Vercel gives the project a different production domain after deployment,
+update `NEXTAUTH_URL` in **Project Settings** > **Environment Variables** and
+redeploy.
+
+### OAuth Production Callback URLs
+
+After the Vercel project exists, configure OAuth with the exact production URL.
+Assume the production URL is:
+
+```text
+https://YOUR_VERCEL_PROJECT.vercel.app
+```
+
+Google Cloud Console:
+
+```text
+Authorized JavaScript origins:
+https://YOUR_VERCEL_PROJECT.vercel.app
+
+Authorized redirect URIs:
+https://YOUR_VERCEL_PROJECT.vercel.app/api/auth/callback/google
+```
+
+GitHub Developer Settings:
+
+```text
+Homepage URL:
+https://YOUR_VERCEL_PROJECT.vercel.app
+
+Authorization callback URL:
+https://YOUR_VERCEL_PROJECT.vercel.app/api/auth/callback/github
+```
+
+For GitHub, using a separate OAuth app for production is usually clearer than
+replacing the local app. For Google, one OAuth web client can contain both local
+and production origins/callbacks.
+
+### Deploy and Redeploy Order
+
+1. Fill the Vercel project form.
+2. Add all environment variables.
+3. Click **Deploy**.
+4. Copy the production URL from the completed deployment.
+5. Add the production OAuth origin and callback URLs in Google and GitHub.
+6. If the final production URL differs from the value in `NEXTAUTH_URL`, update
+   `NEXTAUTH_URL` in Vercel.
+7. Click **Redeploy** from the latest deployment after changing environment
+   variables or OAuth settings.
+
+### MongoDB Production Connectivity
+
+Before smoke testing, confirm Atlas allows Vercel to connect:
+
+1. Open MongoDB Atlas.
+2. Go to **Network Access**.
+3. For a simple homework deployment, add `0.0.0.0/0` so Vercel serverless
+   functions can connect from changing IPs.
+4. Keep the database user limited to the app database where possible.
+5. Confirm `MONGODB_URI` includes the real password. If the password contains
+   special characters such as `@`, `/`, `:`, or `#`, URL-encode them in the
+   connection string.
+
+### Pusher Production Connectivity
+
+Pusher does not need a callback URL for this app. The important part is that
+the server and browser use matching app credentials:
+
+1. `PUSHER_KEY` and `NEXT_PUBLIC_PUSHER_KEY` must be identical.
+2. `PUSHER_CLUSTER` and `NEXT_PUBLIC_PUSHER_CLUSTER` must be identical.
+3. `PUSHER_SECRET` must only be stored in Vercel environment variables and must
+   not be exposed in client-side code.
+4. If realtime updates fail in production, first compare the cluster value in
+   Vercel with the cluster shown in Pusher's **App Keys** page.
+
+### Production Smoke Test
 
 ```text
 1. Visit the deployed URL.
@@ -280,17 +423,53 @@ Steps:
 7. Sign in with GitHub using a separate test account if available.
 8. Create a post.
 9. Confirm the post appears in Home > All.
+10. Edit your profile display name, bio, avatar URL, or banner URL.
+11. Open a second browser or incognito window with another registered account.
+12. Like or comment on a visible post from one account.
+13. Confirm the other account sees the like/comment count update without a page
+    refresh.
+14. Confirm Home > Following works after following another account.
+15. Confirm your own profile shows Posts and Likes, while another user's profile
+    does not show the Likes tab.
 ```
+
+### Vercel Install Troubleshooting
+
+If Vercel fails before the Next.js build starts with a Yarn integrity error like
+this:
+
+```text
+error https://registry.npmjs.org/tweetnacl/-/tweetnacl-1.0.3.tgz:
+Integrity check failed for "tweetnacl"
+```
+
+then the deployment did not reach application code or environment variable
+validation. Confirm that `yarn.lock` has the complete `tweetnacl@1.0.3`
+integrity string and push the updated lockfile before redeploying.
+
+Expected lockfile entry:
+
+```text
+tweetnacl@^1.0.0, tweetnacl@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.npmjs.org/tweetnacl/-/tweetnacl-1.0.3.tgz"
+  integrity "sha512-6rt+RN7aOi1nGMyC4Xa5DdYiukl2UWCbcJft7YhxReBGQD7OAM8Pbxw6YOn9rhaiE5yw== sha1-rAr3FoBFjYpjeNDQ0FCrFAfTVZY="
+```
+
+If the same install step fails again for a different package while Vercel is
+fetching dependencies, click **Redeploy** and disable the build cache. That kind
+of failure is usually a package registry or cache fetch problem, not an OAuth,
+MongoDB, or Pusher configuration problem.
 
 ## Local Setup After Phase 1
 
-These commands will apply once the Next.js app is initialized:
+This project uses Yarn v1 because it has a `yarn.lock` file:
 
 ```bash
-npm install
-npm run dev
-npm test
-npm run lint
+yarn install
+yarn dev
+yarn test:run
+yarn lint
+yarn typecheck
+yarn build
 ```
-
-The exact commands must be confirmed in Phase 1 after package scripts are created.

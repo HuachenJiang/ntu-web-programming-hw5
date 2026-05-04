@@ -231,6 +231,8 @@ Acceptance criteria:
 
 ## Phase 7: Deployment
 
+Status: in progress
+
 Goal: deploy the finished basic app to Vercel.
 
 Work:
