@@ -30,6 +30,7 @@ const post: PostDetailView = {
   content: "hello feed",
   countedLength: 10,
   entities: [],
+  media: [],
   commentCount: 0,
   repostCount: 0,
   likeCount: 0,

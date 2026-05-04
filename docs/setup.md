@@ -1,6 +1,9 @@
 # Setup Guide
 
-This guide lists the user-operated setup needed for OAuth, MongoDB, Pusher, and Vercel. During local development, place these values in `.env.local` or `.env`. During deployment, add the same values to the Vercel project environment variables.
+This guide lists the user-operated setup needed for OAuth, MongoDB, Pusher,
+Vercel Blob, and Vercel. During local development, place these values in
+`.env.local` or `.env`. During deployment, add the same values to the Vercel
+project environment variables.
 
 After setup, see `docs/querying.md` for checking MongoDB Atlas data and local API responses.
 
@@ -25,6 +28,8 @@ PUSHER_SECRET="YOUR_PUSHER_SECRET"
 PUSHER_CLUSTER="YOUR_PUSHER_CLUSTER"
 NEXT_PUBLIC_PUSHER_KEY="YOUR_PUSHER_KEY"
 NEXT_PUBLIC_PUSHER_CLUSTER="YOUR_PUSHER_CLUSTER"
+
+BLOB_READ_WRITE_TOKEN="YOUR_VERCEL_BLOB_READ_WRITE_TOKEN"
 ```
 
 For production, set `NEXTAUTH_URL` to the deployed Vercel URL, for example:
@@ -244,6 +249,58 @@ Use publicly reachable `http://` or `https://` image URLs when testing profile
 edits. Local file uploads and hosted media storage are deferred until a later
 media phase.
 
+## Vercel Blob Setup
+
+Phase 8 image media support uses Vercel Blob for uploaded post/comment images.
+Cloudinary is not used in Phase 8. Uploaded images are stored in Vercel Blob and
+delivered through Vercel's global network. App-rendered images should use
+Next.js/Vercel image optimization where appropriate.
+
+Reference docs:
+
+- Vercel Blob: `https://vercel.com/docs/vercel-blob`
+- Vercel Image Optimization: `https://vercel.com/docs/image-optimization`
+- Vercel CDN: `https://vercel.com/docs/cdn`
+
+Required value:
+
+- `BLOB_READ_WRITE_TOKEN`
+
+Steps:
+
+1. Open the Vercel dashboard: `https://vercel.com/dashboard`.
+2. Open the project for this homework app. If the Vercel project does not exist
+   yet, create the project first from the **Vercel Deployment Setup** section,
+   then return to this section before Phase 8 production testing.
+3. Open the project's **Storage** tab.
+4. Choose **Blob**.
+5. Create a new Blob store or connect an existing Blob store to this project.
+6. Open the Blob store connection details or environment variables view.
+7. Copy the generated read/write token.
+8. Add the value to local development:
+
+```bash
+BLOB_READ_WRITE_TOKEN="PASTE_VERCEL_BLOB_READ_WRITE_TOKEN_HERE"
+```
+
+9. Add the same key and value to Vercel project environment variables for
+   **Production**:
+
+| Key | Value |
+| --- | --- |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob read/write token generated for the connected Blob store. |
+
+10. Redeploy after adding or changing `BLOB_READ_WRITE_TOKEN` in Vercel.
+
+Phase 8 image upload scope:
+
+- Only post/comment images are supported.
+- Videos are not supported.
+- A single post/comment can attach at most 2 images.
+- Each uploaded image can be at most 5 MB.
+- MongoDB stores image metadata and Vercel Blob URLs only. Do not store binary
+  image content in MongoDB.
+
 ## Vercel Deployment Setup
 
 Required values:
@@ -303,11 +360,11 @@ automatically.
 
 ### Vercel Environment Variables
 
-In the **Environment Variables** section, add one row per variable. For Phase 7,
-set the environment selector to **Production**. If the form only shows
-**Production and Preview**, that is acceptable for the first homework deploy,
-but remember that OAuth preview deployments may not work unless their callback
-URLs are also registered.
+In the **Environment Variables** section, add one row per variable. For Phase 7
+deployment and Phase 8 image uploads, set the environment selector to
+**Production**. If the form only shows **Production and Preview**, that is
+acceptable for the first homework deploy, but remember that OAuth preview
+deployments may not work unless their callback URLs are also registered.
 
 Add these rows:
 
@@ -327,6 +384,7 @@ Add these rows:
 | `PUSHER_CLUSTER` | Pusher Channels cluster, for example `ap3`, `us2`, or the cluster shown in Pusher. |
 | `NEXT_PUBLIC_PUSHER_KEY` | Same value as `PUSHER_KEY`. |
 | `NEXT_PUBLIC_PUSHER_CLUSTER` | Same value as `PUSHER_CLUSTER`. |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob read/write token for Phase 8 image uploads. |
 
 If you know the project name will be `ntu-web-programming-hw5`, start with:
 
@@ -337,6 +395,75 @@ NEXTAUTH_URL=https://ntu-web-programming-hw5.vercel.app
 If Vercel gives the project a different production domain after deployment,
 update `NEXTAUTH_URL` in **Project Settings** > **Environment Variables** and
 redeploy.
+
+### After Vercel Deploys Successfully
+
+When the deployment status becomes **Ready** and the environment is
+**Production**, the app is deployed. Vercel may show several working domains for
+the same app:
+
+```text
+Production domain:
+https://YOUR_VERCEL_PROJECT.vercel.app
+
+Deployment URL:
+https://YOUR_VERCEL_PROJECT-RANDOM_ID.vercel.app
+
+Branch URL:
+https://YOUR_VERCEL_PROJECT-git-main-YOUR_TEAM.vercel.app
+```
+
+Use the stable **Production domain** for app configuration, OAuth settings, and
+homework submission. Do not use the deployment URL with the random suffix for
+OAuth callbacks because it can change after redeploying.
+
+For this project, the intended production domain is:
+
+```text
+https://ntu-web-programming-hw5.vercel.app
+```
+
+After the first successful deployment, update or confirm these settings:
+
+1. Vercel **Project Settings** > **Environment Variables**:
+
+```text
+NEXTAUTH_URL=https://ntu-web-programming-hw5.vercel.app
+```
+
+2. Google Cloud Console OAuth client:
+
+```text
+Authorized JavaScript origins:
+https://ntu-web-programming-hw5.vercel.app
+
+Authorized redirect URIs:
+https://ntu-web-programming-hw5.vercel.app/api/auth/callback/google
+```
+
+3. GitHub OAuth app:
+
+```text
+Homepage URL:
+https://ntu-web-programming-hw5.vercel.app
+
+Authorization callback URL:
+https://ntu-web-programming-hw5.vercel.app/api/auth/callback/github
+```
+
+4. MongoDB Atlas **Network Access**:
+
+```text
+0.0.0.0/0
+```
+
+MongoDB does not have an OAuth-style callback URL. The Atlas change only allows
+Vercel's serverless functions to connect to the database. For a stricter
+production deployment, replace `0.0.0.0/0` with a tighter access strategy.
+
+5. Redeploy the latest Vercel deployment after changing Vercel environment
+   variables. OAuth console changes do not require redeploying by themselves,
+   but redeploying is harmless if you changed both Vercel and OAuth settings.
 
 ### OAuth Production Callback URLs
 
@@ -432,6 +559,58 @@ the server and browser use matching app credentials:
 15. Confirm your own profile shows Posts and Likes, while another user's profile
     does not show the Likes tab.
 ```
+
+### Production Login Troubleshooting
+
+If the deployed app redirects to this URL:
+
+```text
+/api/auth/error?error=Configuration
+```
+
+and shows:
+
+```text
+Server error
+There is a problem with the server configuration.
+Check the server logs for more information.
+```
+
+then the browser is only showing a generic Auth.js/NextAuth error. The real
+cause is in Vercel's runtime logs.
+
+To inspect the error:
+
+1. Open the Vercel project.
+2. Open **Deployments**.
+3. Select the latest **Production** deployment marked **Current**.
+4. Open **Runtime Logs**. If Runtime Logs are not visible on that page, open the
+   project-level **Logs** or **Observability** page.
+5. Reproduce the login failure in another browser tab.
+6. Return to Runtime Logs and filter by the latest timestamp or by one of these
+   paths:
+
+```text
+/api/auth/signin
+/api/auth/callback/google
+/api/auth/callback/github
+/api/auth/session
+```
+
+Common production login causes:
+
+| Log clue | What to check |
+| --- | --- |
+| `Missing required environment variable` | The named key is absent or empty in Vercel environment variables. |
+| `MissingSecret` or secret-related Auth.js error | `NEXTAUTH_SECRET` is missing, empty, or was imported with the wrong key name. |
+| Provider/client configuration error | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, or `GITHUB_CLIENT_SECRET` is missing or still contains a placeholder value. |
+| OAuth redirect URI mismatch | Google or GitHub callback URL does not exactly match the production domain. |
+| `MongoServerSelectionError`, authentication failure, or connection timeout | Check `MONGODB_URI`, `MONGODB_DB`, database username/password, and MongoDB Atlas Network Access. |
+
+When checking Vercel environment variables, make sure the keys are exact. For
+example, the key must be `NEXTAUTH_URL`, not `NEXTAUTH_URL ` with a trailing
+space. Values copied from a `.env` file should not include surrounding quote
+characters unless Vercel imported and displayed them correctly.
 
 ### Vercel Install Troubleshooting
 

@@ -6,6 +6,7 @@ import {
   POST_MAX_COUNTED_LENGTH,
   type PostEntity,
 } from "@/features/posts/content";
+import { MediaAttachmentPicker } from "@/components/posts/media-attachments";
 import { RichPostText } from "@/components/posts/rich-post-text";
 
 type ComposerUser = {
@@ -96,6 +97,40 @@ function optimisticPostFromContent(content: string): PostView {
   };
 }
 
+function createPostRequest({
+  content,
+  draftId,
+  images,
+}: {
+  content: string;
+  draftId?: string | null;
+  images: File[];
+}) {
+  if (images.length === 0) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ content, draftId: draftId ?? null }),
+    };
+  }
+
+  const formData = new FormData();
+  formData.append("content", content);
+
+  if (draftId) {
+    formData.append("draftId", draftId);
+  }
+
+  for (const image of images) {
+    formData.append("images", image);
+  }
+
+  return {
+    body: formData,
+  };
+}
+
 export function PostComposerModal({
   currentUser,
   onCreated,
@@ -112,6 +147,7 @@ export function PostComposerModal({
   const [confirmClose, setConfirmClose] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [images, setImages] = useState<File[]>([]);
   const canSubmit = content.trim().length > 0 && remaining >= 0 && !busy;
 
   async function loadDrafts() {
@@ -198,12 +234,10 @@ export function PostComposerModal({
     try {
       const response = await fetch("/api/posts", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+        ...createPostRequest({
           content,
           draftId,
+          images,
         }),
       });
 
@@ -238,6 +272,7 @@ export function PostComposerModal({
   function selectDraft(draft: DraftView) {
     setDraftId(draft.id);
     setContent(draft.content);
+    setImages([]);
     setDraftsOpen(false);
     setConfirmClose(false);
     setMessage(null);
@@ -331,6 +366,12 @@ export function PostComposerModal({
                 {message}
               </p>
             ) : null}
+            <MediaAttachmentPicker
+              disabled={busy}
+              files={images}
+              onError={setMessage}
+              onFilesChange={setImages}
+            />
             <div className="mt-4 flex items-center justify-between border-t border-[#2f3336] pt-4">
               <span
                 className={`text-sm font-bold ${
@@ -355,7 +396,8 @@ export function PostComposerModal({
           <div className="border-t border-[#2f3336] px-5 py-4">
             <h3 className="text-base font-black">Save this post?</h3>
             <p className="mt-1 text-sm font-semibold text-[#71767b]">
-              Save it as a draft or discard it permanently.
+              Save the text as a draft or discard it permanently. Attached
+              images are not saved to drafts.
             </p>
             <div className="mt-4 flex flex-wrap justify-end gap-2">
               <button
@@ -401,6 +443,7 @@ export function InlinePostComposer({
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [createdPost, setCreatedPost] = useState<PostView | null>(null);
+  const [images, setImages] = useState<File[]>([]);
   const canSubmit = content.trim().length > 0 && remaining >= 0 && !busy;
 
   async function publishPost() {
@@ -414,10 +457,7 @@ export function InlinePostComposer({
     try {
       const response = await fetch("/api/posts", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ content }),
+        ...createPostRequest({ content, images }),
       });
 
       if (!response.ok) {
@@ -431,6 +471,7 @@ export function InlinePostComposer({
         onCreated?.(result.post);
       }
       setContent("");
+      setImages([]);
     } catch {
       setMessage(networkErrorMessage("Creating the post"));
     } finally {
@@ -455,6 +496,12 @@ export function InlinePostComposer({
               {message}
             </p>
           ) : null}
+          <MediaAttachmentPicker
+            disabled={busy}
+            files={images}
+            onError={setMessage}
+            onFilesChange={setImages}
+          />
           <div className="mt-3 flex items-center justify-between">
             <span className="text-sm font-bold text-[#71767b]">
               {parsed.countedLength}/{POST_MAX_COUNTED_LENGTH}

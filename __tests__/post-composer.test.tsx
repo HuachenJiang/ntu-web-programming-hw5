@@ -218,6 +218,47 @@ describe("Phase 4 post composer UI", () => {
     ).toHaveAttribute("href", "https://example.com");
   });
 
+  it("submits inline composer images as multipart form data", async () => {
+    const parsed = parsePostContent("hello with image");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          post: {
+            id: "post_1",
+            content: parsed.content,
+            countedLength: parsed.countedLength,
+            entities: parsed.entities,
+            media: [],
+            createdAt: "2026-04-30T00:00:00.000Z",
+          },
+        }),
+      }),
+    );
+
+    render(<InlinePostComposer currentUser={currentUser} />);
+
+    const image = new File(["image"], "inline.png", { type: "image/png" });
+    fireEvent.change(screen.getByLabelText("Attach images"), {
+      target: { files: [image] },
+    });
+    fireEvent.change(screen.getByRole("textbox", { name: "Inline post text" }), {
+      target: { value: "hello with image" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Post" }));
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalled();
+    });
+
+    const [, init] = vi.mocked(fetch).mock.calls[0] ?? [];
+    expect(init?.body).toBeInstanceOf(FormData);
+    const body = init?.body as FormData;
+    expect(body.get("content")).toBe("hello with image");
+    expect(body.getAll("images")).toEqual([image]);
+  });
+
   it("recovers when inline post creation is interrupted", async () => {
     vi.stubGlobal(
       "fetch",

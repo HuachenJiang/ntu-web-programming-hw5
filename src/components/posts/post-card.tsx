@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { PostMediaGrid } from "@/components/posts/media-attachments";
 import { RichPostText } from "@/components/posts/rich-post-text";
 import type {
   FeedItemView,
@@ -321,6 +322,8 @@ export function PostCard({
           <div className={`mt-1 ${prominent ? "text-xl leading-7" : ""}`}>
             <RichPostText content={post.content} entities={post.entities} />
           </div>
+
+          <PostMediaGrid media={post.media} />
 
           {message ? (
             <p className="mt-3 rounded-xl border border-[#f4212e] bg-[#20070a] px-3 py-2 text-sm font-bold text-[#ff8b94]">

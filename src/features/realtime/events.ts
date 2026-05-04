@@ -67,6 +67,7 @@ export function toRealtimePostSnapshot(
     content: post.content,
     countedLength: post.countedLength,
     entities: post.entities,
+    media: post.media,
     commentCount: post.commentCount,
     repostCount: post.repostCount,
     likeCount: post.likeCount,

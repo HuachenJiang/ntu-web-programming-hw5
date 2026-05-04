@@ -47,6 +47,8 @@ Planned data groups:
 - Follows: follower and following user references stored in a dedicated `follows` collection with a unique `(followerId, followingId)` pair.
 - Likes: user and post/comment target references.
 - Reposts: user and source post references.
+- Media: Phase 8 post/comment image files live in Vercel Blob. MongoDB post
+  documents store only media metadata and public Blob URLs.
 
 Phase 2 creates a unique index on `users.userIDLower` for registered users. The application writes both `userID` and `userIDLower` during first-login onboarding and never updates either field afterward. Phase 3 adds the unique follow-pair index.
 
@@ -181,5 +183,10 @@ Advanced features are deferred until the basic app is complete:
 - New post notice
 - Full hashtag pages
 - Long posts
-- Media uploads/CDN
 - Mobile-specific enhancements
+
+Phase 8 selects image media upload as the first advanced feature. It supports
+0-2 images per post/comment, rejects non-image files and images larger than 5
+MB, uses Vercel Blob public storage for uploaded image files, and renders those
+images from Vercel-hosted URLs. Video upload, Cloudinary, long posts, and
+GIF-specific behavior remain outside Phase 8.

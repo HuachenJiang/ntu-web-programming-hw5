@@ -13,6 +13,7 @@ const REQUIRED_ENV_KEYS = [
   "PUSHER_CLUSTER",
   "NEXT_PUBLIC_PUSHER_KEY",
   "NEXT_PUBLIC_PUSHER_CLUSTER",
+  "BLOB_READ_WRITE_TOKEN",
 ] as const;
 
 export type EnvKey = (typeof REQUIRED_ENV_KEYS)[number];

@@ -1,5 +1,6 @@
 import { ObjectId, type Document, type MongoServerError } from "mongodb";
 import type { ParsedPostContent, PostEntity } from "@/features/posts/content";
+import type { PostMediaView } from "@/features/posts/media";
 import { getAppDatabase } from "@/server/db/database";
 import { ensureDatabaseIndexes } from "@/server/db/indexes";
 
@@ -17,6 +18,7 @@ export type StoredPostView = {
   content: string;
   countedLength: number;
   entities: PostEntity[];
+  media: PostMediaView[];
   commentCount: number;
   repostCount: number;
   likeCount: number;
@@ -64,6 +66,7 @@ type MongoPostDocument = Document & {
   content: string;
   countedLength: number;
   entities: PostEntity[];
+  media?: PostMediaView[];
   commentCount: number;
   repostCount: number;
   likeCount: number;
@@ -160,6 +163,7 @@ function mapPost(document: MongoPostDocument): StoredPostView {
     content: document.content,
     countedLength: document.countedLength,
     entities: document.entities,
+    media: Array.isArray(document.media) ? document.media : [],
     commentCount: document.commentCount,
     repostCount: document.repostCount,
     likeCount: document.likeCount,
@@ -371,10 +375,12 @@ export async function countOriginalPostsByAuthor(authorId: string) {
 export async function createPost({
   authorId,
   draftId,
+  media = [],
   parsed,
 }: {
   authorId: string;
   draftId?: string | null;
+  media?: PostMediaView[];
   parsed: ParsedPostContent;
 }): Promise<StoredPostView> {
   await ensureDatabaseIndexes();
@@ -388,6 +394,7 @@ export async function createPost({
       content: parsed.content,
       countedLength: parsed.countedLength,
       entities: parsed.entities,
+      media,
       commentCount: 0,
       repostCount: 0,
       likeCount: 0,
@@ -411,6 +418,7 @@ export async function createPost({
     content: parsed.content,
     countedLength: parsed.countedLength,
     entities: parsed.entities,
+    media,
     commentCount: 0,
     repostCount: 0,
     likeCount: 0,
@@ -423,10 +431,12 @@ export async function createPost({
 
 export async function createComment({
   authorId,
+  media = [],
   parentPostId,
   parsed,
 }: {
   authorId: string;
+  media?: PostMediaView[];
   parentPostId: string;
   parsed: ParsedPostContent;
 }): Promise<PostDetailView | null> {
@@ -457,6 +467,7 @@ export async function createComment({
       content: parsed.content,
       countedLength: parsed.countedLength,
       entities: parsed.entities,
+      media,
       commentCount: 0,
       repostCount: 0,
       likeCount: 0,
@@ -483,6 +494,7 @@ export async function createComment({
         content: parsed.content,
         countedLength: parsed.countedLength,
         entities: parsed.entities,
+        media,
         commentCount: 0,
         repostCount: 0,
         likeCount: 0,

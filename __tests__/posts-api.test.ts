@@ -18,6 +18,8 @@ const repostPostMock = vi.hoisted(() => vi.fn());
 const unrepostPostMock = vi.hoisted(() => vi.fn());
 const publishCommentCreatedMock = vi.hoisted(() => vi.fn());
 const publishPostCountsUpdatedMock = vi.hoisted(() => vi.fn());
+const uploadPostMediaMock = vi.hoisted(() => vi.fn());
+const deletePostMediaMock = vi.hoisted(() => vi.fn());
 
 vi.mock("../auth", () => ({
   auth: authMock,
@@ -44,6 +46,11 @@ vi.mock("@/server/posts/repository", () => ({
 vi.mock("@/server/realtime/pusher", () => ({
   publishCommentCreated: publishCommentCreatedMock,
   publishPostCountsUpdated: publishPostCountsUpdatedMock,
+}));
+
+vi.mock("@/server/posts/media", () => ({
+  uploadPostMedia: uploadPostMediaMock,
+  deletePostMedia: deletePostMediaMock,
 }));
 
 import { POST as createPostRoute } from "@/app/api/posts/route";
@@ -84,6 +91,39 @@ function jsonRequest(body: object) {
   });
 }
 
+function multipartRequest({
+  content,
+  draftId,
+  images = [],
+}: {
+  content: string;
+  draftId?: string;
+  images?: File[];
+}) {
+  const formData = new FormData();
+  formData.append("content", content);
+
+  if (draftId) {
+    formData.append("draftId", draftId);
+  }
+
+  for (const image of images) {
+    formData.append("images", image);
+  }
+
+  const request = new Request("http://localhost/api/test", {
+    method: "POST",
+    headers: {
+      "content-type": "multipart/form-data; boundary=vitest",
+    },
+    body: "",
+  });
+  Object.defineProperty(request, "formData", {
+    value: vi.fn().mockResolvedValue(formData),
+  });
+  return request;
+}
+
 describe("post and draft APIs", () => {
   beforeEach(() => {
     authMock.mockReset();
@@ -104,6 +144,9 @@ describe("post and draft APIs", () => {
     unrepostPostMock.mockReset();
     publishCommentCreatedMock.mockReset();
     publishPostCountsUpdatedMock.mockReset();
+    uploadPostMediaMock.mockReset();
+    deletePostMediaMock.mockReset();
+    uploadPostMediaMock.mockResolvedValue([]);
   });
 
   it("rejects unauthenticated post creation", async () => {
@@ -141,6 +184,7 @@ describe("post and draft APIs", () => {
       expect.objectContaining({
         authorId: session.user.id,
         draftId: null,
+        media: [],
         parsed: expect.objectContaining({
           content: "hello @rico",
         }),
@@ -172,8 +216,75 @@ describe("post and draft APIs", () => {
       expect.objectContaining({
         authorId: session.user.id,
         draftId: "507f1f77bcf86cd799439012",
+        media: [],
       }),
     );
+  });
+
+  it("creates a post with uploaded images from multipart form data", async () => {
+    authMock.mockResolvedValue(session);
+    const image = new File(["image"], "hello.png", { type: "image/png" });
+    const media = [
+      {
+        url: "https://store.public.blob.vercel-storage.com/post.png",
+        pathname: "posts/user/post.png",
+        contentType: "image/png",
+        size: image.size,
+        filename: image.name,
+        uploadedAt: "2026-05-04T00:00:00.000Z",
+      },
+    ];
+    uploadPostMediaMock.mockResolvedValue(media);
+    createPostMock.mockResolvedValue({ id: "post_1", media });
+
+    const response = await createPostRoute(
+      multipartRequest({ content: "hello image", images: [image] }),
+    );
+
+    expect(response.status).toBe(201);
+    expect(uploadPostMediaMock).toHaveBeenCalledWith({
+      files: [image],
+      userId: session.user.id,
+    });
+    expect(createPostMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        media,
+        parsed: expect.objectContaining({ content: "hello image" }),
+      }),
+    );
+  });
+
+  it("rejects too many post images before upload", async () => {
+    authMock.mockResolvedValue(session);
+    const images = [
+      new File(["1"], "one.png", { type: "image/png" }),
+      new File(["2"], "two.png", { type: "image/png" }),
+      new File(["3"], "three.png", { type: "image/png" }),
+    ];
+
+    const response = await createPostRoute(
+      multipartRequest({ content: "too many", images }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.status).toBe("too_many_images");
+    expect(uploadPostMediaMock).not.toHaveBeenCalled();
+    expect(createPostMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects non-image post uploads before upload", async () => {
+    authMock.mockResolvedValue(session);
+    const file = new File(["plain"], "notes.txt", { type: "text/plain" });
+
+    const response = await createPostRoute(
+      multipartRequest({ content: "bad file", images: [file] }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.status).toBe("invalid_image_type");
+    expect(uploadPostMediaMock).not.toHaveBeenCalled();
   });
 
   it("lists, creates, updates, and deletes drafts for the current user", async () => {
@@ -291,6 +402,7 @@ describe("post and draft APIs", () => {
     expect(createCommentMock).toHaveBeenCalledWith(
       expect.objectContaining({
         authorId: session.user.id,
+        media: [],
         parentPostId: "507f1f77bcf86cd799439013",
         parsed: expect.objectContaining({ content: "reply @rico" }),
       }),
@@ -300,6 +412,49 @@ describe("post and draft APIs", () => {
       createdByUserId: session.user.id,
       parentPost,
     });
+  });
+
+  it("creates comments with uploaded images from multipart form data", async () => {
+    authMock.mockResolvedValue(session);
+    const image = new File(["image"], "reply.webp", { type: "image/webp" });
+    const media = [
+      {
+        url: "https://store.public.blob.vercel-storage.com/reply.webp",
+        pathname: "posts/user/reply.webp",
+        contentType: "image/webp",
+        size: image.size,
+        filename: image.name,
+        uploadedAt: "2026-05-04T00:00:00.000Z",
+      },
+    ];
+    const comment = { id: "comment_1", media };
+    const parentPost = { id: "507f1f77bcf86cd799439013", commentCount: 1 };
+    uploadPostMediaMock.mockResolvedValue(media);
+    createCommentMock.mockResolvedValue(comment);
+    getPostThreadMock.mockResolvedValue({
+      post: parentPost,
+      replies: [comment],
+    });
+    const context = {
+      params: Promise.resolve({ postId: "507f1f77bcf86cd799439013" }),
+    };
+
+    const response = await createCommentRoute(
+      multipartRequest({ content: "reply image", images: [image] }),
+      context,
+    );
+
+    expect(response.status).toBe(201);
+    expect(uploadPostMediaMock).toHaveBeenCalledWith({
+      files: [image],
+      userId: session.user.id,
+    });
+    expect(createCommentMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        media,
+        parsed: expect.objectContaining({ content: "reply image" }),
+      }),
+    );
   });
 
   it("likes, unlikes, reposts, and unreposts posts", async () => {

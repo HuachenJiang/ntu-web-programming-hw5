@@ -231,7 +231,7 @@ Acceptance criteria:
 
 ## Phase 7: Deployment
 
-Status: in progress
+Status: complete
 
 Goal: deploy the finished basic app to Vercel.
 
@@ -250,6 +250,50 @@ Acceptance criteria:
 - A returning user can log in with a valid session.
 - Core feed, profile, posting, and interaction flows work in production.
 
+## Phase 8: Image Media Support
+
+Status: planned
+
+Goal: implement the selected advanced multimedia feature by allowing users to
+attach images to posts and comments.
+
+Work:
+
+- Add image attachment support to post and comment creation.
+- Allow 0, 1, or 2 images per post/comment.
+- Reject more than 2 images for a single post/comment.
+- Validate uploads as image files before storing or attaching them.
+- Limit each uploaded image to 5 MB.
+- Store image files in Vercel Blob so uploaded media is delivered through
+  Vercel's global network.
+- Store only image metadata and Vercel Blob URLs in MongoDB post documents.
+- Render attached images in feed cards, post detail pages, and recursive
+  comments.
+- Keep existing text-only posts and comments fully supported.
+- Use Next.js image rendering/optimization where appropriate for app-rendered
+  images.
+- Keep videos, long posts, Cloudinary, and GIF-specific behavior outside Phase
+  8. GIF files may be treated only as normal image uploads if the validation
+  policy allows them.
+
+Acceptance criteria:
+
+- A user can create a text-only post or comment without attaching images.
+- A user can create a post or comment with 1 image.
+- A user can create a post or comment with 2 images.
+- The app rejects attempts to attach more than 2 images to one post/comment.
+- The app rejects non-image uploads.
+- The app rejects image uploads larger than 5 MB.
+- Attached images remain visible in feeds, post detail pages, and recursive
+  comment views after a page reload.
+- Existing posts and comments without images still render correctly.
+- MongoDB stores media metadata and Blob URLs, not binary image content.
+- Production smoke testing confirms uploaded images load from Vercel-hosted
+  URLs after deployment.
+- Focused tests cover media validation, post/comment creation with 0-2 images,
+  image-count rejection, file-size rejection, non-image rejection, and rendering
+  of text-only posts.
+
 ## Later Optional Advanced Phase
 
 Advanced features are not part of the basic roadmap. Candidate features:
@@ -259,5 +303,4 @@ Advanced features are not part of the basic roadmap. Candidate features:
 - New post notice
 - Full hashtag pages
 - Long posts
-- Media upload/CDN support
 - Mobile-specific layout improvements

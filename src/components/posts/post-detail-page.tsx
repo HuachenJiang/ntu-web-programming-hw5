@@ -6,6 +6,7 @@ import {
   parsePostContent,
   POST_MAX_COUNTED_LENGTH,
 } from "@/features/posts/content";
+import { MediaAttachmentPicker } from "@/components/posts/media-attachments";
 import { PostCard } from "@/components/posts/post-card";
 import type { AppShellUser } from "@/components/app/app-shell";
 import { usePostRealtimeSubscriptions } from "@/features/realtime/client";
@@ -21,6 +22,28 @@ type ApiCommentResult = {
   comment?: PostDetailView;
   message?: string;
 };
+
+function createReplyRequest(content: string, images: File[]) {
+  if (images.length === 0) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ content }),
+    };
+  }
+
+  const formData = new FormData();
+  formData.append("content", content);
+
+  for (const image of images) {
+    formData.append("images", image);
+  }
+
+  return {
+    body: formData,
+  };
+}
 
 function replacePost(
   thread: PostThreadView,
@@ -151,6 +174,7 @@ function ReplyComposer({
   const [content, setContent] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [images, setImages] = useState<File[]>([]);
   const parsed = parsePostContent(content);
   const canSubmit =
     content.trim().length > 0 &&
@@ -168,10 +192,7 @@ function ReplyComposer({
     try {
       const response = await fetch(`/api/posts/${parentId}/comments`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ content }),
+        ...createReplyRequest(content, images),
       });
       const result = (await response
         .json()
@@ -184,6 +205,7 @@ function ReplyComposer({
 
       onCreated(result.comment);
       setContent("");
+      setImages([]);
     } catch {
       setMessage("The connection was interrupted. Please try again.");
     } finally {
@@ -220,6 +242,12 @@ function ReplyComposer({
               {message}
             </p>
           ) : null}
+          <MediaAttachmentPicker
+            disabled={busy}
+            files={images}
+            onError={setMessage}
+            onFilesChange={setImages}
+          />
           <div className="mt-3 flex items-center justify-between">
             <span className="text-sm font-bold text-[#71767b]">
               {parsed.countedLength}/{POST_MAX_COUNTED_LENGTH}

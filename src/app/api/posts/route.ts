@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { validatePostContent } from "@/features/posts/content";
+import { validatePostImageFiles } from "@/features/posts/media";
+import { deletePostMedia, uploadPostMedia } from "@/server/posts/media";
+import { readPostSubmission } from "@/server/posts/request";
 import {
   createPost,
   getDraftById,
@@ -19,20 +22,20 @@ export async function POST(request: Request) {
     );
   }
 
-  const body = (await request.json().catch(() => ({}))) as {
-    content?: unknown;
-    draftId?: unknown;
-  };
-  const parsed = validatePostContent(body.content);
+  const submission = await readPostSubmission(request);
+  const parsed = validatePostContent(submission.content);
 
   if (!parsed.ok) {
     return NextResponse.json(parsed, { status: 400 });
   }
 
-  const draftId =
-    typeof body.draftId === "string" && body.draftId.trim().length > 0
-      ? body.draftId.trim()
-      : null;
+  const mediaValidation = validatePostImageFiles(submission.imageFiles);
+
+  if (!mediaValidation.ok) {
+    return NextResponse.json(mediaValidation, { status: 400 });
+  }
+
+  const draftId = submission.draftId;
 
   if (draftId) {
     if (!isValidObjectId(draftId)) {
@@ -55,11 +58,31 @@ export async function POST(request: Request) {
     }
   }
 
-  const post = await createPost({
-    authorId: session.user.id,
-    draftId,
-    parsed: parsed.value,
-  });
+  let media: Awaited<ReturnType<typeof uploadPostMedia>>;
 
-  return NextResponse.json({ status: "ok", post }, { status: 201 });
+  try {
+    media = await uploadPostMedia({
+      files: mediaValidation.files,
+      userId: session.user.id,
+    });
+  } catch {
+    return NextResponse.json(
+      { status: "media_upload_failed", message: "Could not upload images." },
+      { status: 500 },
+    );
+  }
+
+  try {
+    const post = await createPost({
+      authorId: session.user.id,
+      draftId,
+      media,
+      parsed: parsed.value,
+    });
+
+    return NextResponse.json({ status: "ok", post }, { status: 201 });
+  } catch (error) {
+    await deletePostMedia(media);
+    throw error;
+  }
 }

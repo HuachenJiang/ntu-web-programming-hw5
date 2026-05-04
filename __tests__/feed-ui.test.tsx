@@ -51,6 +51,7 @@ const post: PostDetailView = {
   content: "hello feed",
   countedLength: 10,
   entities: [],
+  media: [],
   commentCount: 0,
   repostCount: 0,
   likeCount: 0,
@@ -194,6 +195,31 @@ describe("Phase 5 feed UI", () => {
 
     expect(screen.queryByText("Post")).not.toBeInTheDocument();
     expect(screen.queryByText("Reply")).not.toBeInTheDocument();
+  });
+
+  it("renders attached post images in the card", () => {
+    render(
+      <PostCard
+        post={{
+          ...post,
+          media: [
+            {
+              url: "https://store.public.blob.vercel-storage.com/photo.png",
+              pathname: "posts/user/photo.png",
+              contentType: "image/png",
+              size: 1200,
+              filename: "photo.png",
+              uploadedAt: "2026-05-04T00:00:00.000Z",
+            },
+          ],
+        }}
+      />,
+    );
+
+    expect(screen.getByRole("img", { name: "photo.png" })).toHaveAttribute(
+      "src",
+      expect.stringContaining("photo.png"),
+    );
   });
 
   it("hides delete controls on repost feed entries", () => {

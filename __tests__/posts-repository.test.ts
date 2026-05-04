@@ -61,6 +61,7 @@ function post({
     content: "hello",
     countedLength: 5,
     entities: [],
+    media: [],
     commentCount: 0,
     repostCount: 0,
     likeCount: 0,
