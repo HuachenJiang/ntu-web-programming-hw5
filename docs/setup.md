@@ -453,7 +453,7 @@ Expected lockfile entry:
 tweetnacl@^1.0.0, tweetnacl@^1.0.3:
   version "1.0.3"
   resolved "https://registry.npmjs.org/tweetnacl/-/tweetnacl-1.0.3.tgz"
-  integrity "sha512-6rt+RN7aOi1nGMyC4Xa5DdYiukl2UWCbcJft7YhxReBGQD7OAM8Pbxw6YOn9rhaiE5yw== sha1-rAr3FoBFjYpjeNDQ0FCrFAfTVZY="
+  integrity "sha512-6rt+RN7aOi1nGMyC4Xa5DdYiukl2UWCbcJft7YhxReBGQD7OAM8Pbxw6YMo4r2diNEA8FEmu32YOn9rhaiE5yw== sha1-rAr3FoBFjYpjeNDQ0FCrFAfTVZY="
 ```
 
 If the same install step fails again for a different package while Vercel is
