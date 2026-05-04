@@ -118,7 +118,7 @@ export function ProfilePage({ profile }: { profile: UserProfileView }) {
           &lt;
         </button>
         <div className="min-w-0">
-          <h1 className="truncate text-xl font-black">Post</h1>
+          <h1 className="truncate text-xl font-black">{view.name}</h1>
           <p className="text-sm text-[#71767b]">{view.postCount} posts</p>
         </div>
       </header>

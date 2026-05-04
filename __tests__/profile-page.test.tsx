@@ -43,9 +43,6 @@ describe("ProfilePage", () => {
       screen.getByRole("button", { name: "Edit Profile" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Likes" })).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "Post" }),
-    ).toBeInTheDocument();
     expect(screen.getByText("@ric2k1")).toBeInTheDocument();
     expect(screen.getByText("Following")).toBeInTheDocument();
     expect(screen.getByText("Followers")).toBeInTheDocument();
